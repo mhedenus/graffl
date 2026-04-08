@@ -1,0 +1,62 @@
+// ==========================================
+// graffl.lark
+// ==========================================
+
+start: _nl* _content?
+
+_content: directives graphs? | graphs
+
+graphs: (_blocks | inner_graph)+
+
+inner_graph: _inner_graph_start _blocks? _inner_graph_end
+
+_inner_graph_start: _MINUS_SEP graph_name _MINUS_SEP? _nl*
+
+_inner_graph_end: _MINUS_SEP _nl*
+
+graph_name: WORD
+
+// --- Direktiven ---
+directives: _directive_line+
+_directive_line: directive _nl*
+directive: "@" WORD*
+
+
+// --- Graphen & Blöcke ---
+_blocks: _block_sep+
+_block_sep: block _DOUBLE_NL*
+
+block: _first_statement_line _following_statement_lines*
+
+_first_statement_line: subject _predicate_object? _SINGLE_NL*
+_following_statement_lines: _predicate_object _SINGLE_NL*
+
+_predicate_object: _predicate object
+
+subject: WORD
+_predicate: predicate_property | predicate_relation
+predicate_property: WORD
+predicate_relation: WORD "->"
+object: WORD
+
+
+// ==========================================
+// Tokens & Hilfsregeln
+// ==========================================
+
+WORD: /[a-zA-Z0-9_.+#!?%$&\/():*~][a-zA-Z0-9_.+#!?%$&\/()@\[\]:*~=-]*/ | URI | STRING | ML_STRING
+
+URI: /<[^>]+>/
+
+_MINUS_SEP: /-{4,}/
+
+_nl: _SINGLE_NL | _DOUBLE_NL
+
+_DOUBLE_NL: /(?:\r?\n[ \t]*){2,}/
+_SINGLE_NL: /\r?\n/
+
+ML_STRING: /"""[\s\S]*?"""/
+
+%import common.ESCAPED_STRING -> STRING
+%import common.WS_INLINE
+%ignore WS_INLINE

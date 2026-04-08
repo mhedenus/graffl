@@ -1,16 +1,34 @@
-# This is a sample Python script.
+from rdflib import Graph
 
-# Press Umschalt+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import graffl.parser
+
+g = Graph()
+
+test_graffl_data = """
+@ p1 p2 p3
+
+    Michael : x
+        "hat Geburtstag" 08.02.1974
+        email michael@hedenus.de
+        homepage https://www.hedenus.de#/~mhedenus/?q1=x1&q2=x2()#1
+        mag -> Doris
+    
+    Doris
+    
+
+    
+---- I1 ----
+X
+
+Y
+------------
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Strg+F8 to toggle the breakpoint.
+
+"""
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+g.parse(data=test_graffl_data, format="graffl")
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+for subj, pred, obj in g:
+    print(f"Subjekt: {subj}, Prädikat: {pred}, Objekt: {obj}")
