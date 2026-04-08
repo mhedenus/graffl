@@ -16,6 +16,8 @@ class GrafflConfig:
         self.uri_properties = {
             "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
         }
+        self.group_contains = "https://www.hedenus.de/graffl/contains"
+        self.group_type = "https://www.hedenus.de/graffl/Group"
 
 
     def load_from_json(self, filepath: str):

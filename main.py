@@ -15,6 +15,8 @@ g = Graph()
 test_graffl_data = """
 @ prefix  http://example.org/data/
 
+---- Graph1 ----
+
     Michael : Person
         "hatGeburtstag" 08.02.1974
         email michael@hedenus.de
@@ -22,12 +24,13 @@ test_graffl_data = """
         mag -> Doris
     
     Doris
-    
+
+-----   
 
 """
 
 
 g.parse(data=test_graffl_data, format="graffl")
 
-output = g.serialize(format="nt")
+output = g.serialize(format="turtle")
 print(output)

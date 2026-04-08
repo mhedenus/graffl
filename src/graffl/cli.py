@@ -1,7 +1,7 @@
 import argparse
 import logging
 import sys
-from pathlib import Path
+from importlib import metadata
 
 from rdflib import Graph
 
@@ -12,9 +12,22 @@ from .parser import GrafflParser
 
 def main():
     # 1. Setup argparse
+
+    try:
+        __version__ = metadata.version("graffl")
+    except metadata.PackageNotFoundError:
+        __version__ = "unknown (not installed)"
+
     arg_parser = argparse.ArgumentParser(
         description="Graffl RDF Parser CLI",
-        epilog="Parses a .graffl file and outputs RDF N-Triples to stdout."
+        epilog="Parses a .graffl file and outputs RDF."
+    )
+
+    arg_parser.add_argument(
+        "-V", "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="Print the program version and exit."
     )
 
     arg_parser.add_argument(

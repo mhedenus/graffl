@@ -1,6 +1,6 @@
 @ prefix  http://www.example.org/test1/
 
----- Kreis-1 ----------
+---- "Innerer Kreis" ----------
 
     Michael : Person
         "hat Geburtstag" 08.02.1974
@@ -14,12 +14,14 @@
 
  ------------------------
 
- Kreis-1 verkehrtNichtMit -> Kreis-2
 
- ---- Kreis-2 ----------
 
- X
 
- Y
+ ---- "Äußerer Kreis" ----------
 
- -----------------------
+"X"
+
+    "Innerer Kreis" verkhertNichtMit -> "X"
+
+
+ ---------------------------------

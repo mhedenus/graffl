@@ -1,7 +1,7 @@
 import os
 import logging
 from urllib.parse import quote
-from rdflib import URIRef, Literal, Graph, RDFS
+from rdflib import URIRef, Literal, Graph, RDFS, RDF
 from rdflib.parser import Parser
 from lark import Lark, Token
 from lark.visitors import Interpreter
@@ -21,11 +21,12 @@ class GrafflASTInterpreter(Interpreter):
     """
 
     def __init__(self, sink):
-        self.main_sink = sink
+        self.sink = sink
 
         # --- Zustandsvariablen (State) ---
         self.entities = {}
         self.current_inner_graph = None
+        self.current_entities_in_inner_graph = None
 
         self.current_subject = None
         self.current_predicate = None
@@ -34,6 +35,9 @@ class GrafflASTInterpreter(Interpreter):
         self.current_uri_prefix = CONFIG.uri_prefix
         self.dictionary = dict(CONFIG.dictionary)
         self.uri_properties = {URIRef(i) for i in CONFIG.uri_properties}
+
+        self.group_contains = URIRef(CONFIG.group_contains)
+        self.group_type = URIRef(CONFIG.group_type)
 
 
     # ==========================================
@@ -92,21 +96,26 @@ class GrafflASTInterpreter(Interpreter):
 
     def inner_graph(self, tree):
 
-        graph_name_str = self._get_raw_value(tree.children[0])
+        graph_name_str = self._clean_string(self._get_raw_value(tree.children[0]))
         logger.debug(f"Entering inner graph: {graph_name_str}")
 
+        self.current_inner_graph = self._make_uri(graph_name_str)
+        self.add_triple((self.current_inner_graph, RDF.type, self.group_type))
+        self.add_triple((self.current_inner_graph, RDFS.label, Literal(graph_name_str)))
+        self.current_entities_in_inner_graph = set()
+
         self.visit_children(tree)
+
+        self.current_inner_graph = None
+        self.current_entities_in_inner_graph = None
 
         logger.debug(f"Leaving inner graph: {graph_name_str}")
 
 
     def block(self, tree):
-        """Setzt den Tripel-Zustand beim Start eines neuen Blocks zurück."""
         self.current_subject = None
         self.current_predicate = None
         self.current_predicate_type = None
-
-        # Die Statements innerhalb des Blocks verarbeiten
         self.visit_children(tree)
 
     def subject(self, tree):
@@ -114,8 +123,12 @@ class GrafflASTInterpreter(Interpreter):
         subject = self._make_uri(val)
 
         if not val in self.entities:
+            self.add_triple((subject, RDFS.label, Literal(self._clean_string(val))))
             self.entities[val] = self.current_subject
-            self.main_sink.add((subject, RDFS.label, Literal(val)))
+
+        if self.current_inner_graph:
+            if not subject in self.current_entities_in_inner_graph:
+                self.add_triple((self.current_inner_graph, self.group_contains, subject))
 
         self.current_subject = subject
 
@@ -132,9 +145,8 @@ class GrafflASTInterpreter(Interpreter):
     def object(self, tree):
         val = self._get_raw_value(tree)
 
-        # --- Zuweisung nach Prädikatstyp ---
         if self.current_predicate_type == 'property':
-            # Property erzwingt immer ein Literal außer wenn ausdrücklich URI oder Spezial
+            # Property erzwingt immer ein Literal, ausser wenn ausdrücklich URI oder Spezial
             if self._is_uri(val) or (self.current_predicate in self.uri_properties):
                 obj = self._make_uri(val)
             else:
@@ -149,8 +161,12 @@ class GrafflASTInterpreter(Interpreter):
             return
 
         if self.current_subject and self.current_predicate and obj:
-            logger.debug(f"Adding triple: ({self.current_subject}, {self.current_predicate}, {obj})")
-            self.main_sink.add((self.current_subject, self.current_predicate, obj))
+            self.add_triple((self.current_subject, self.current_predicate, obj))
+
+    def add_triple(self, triple):
+        logger.debug(f"{triple[0]} {triple[1]} {triple[2]}")
+        self.sink.add(triple)
+
 
 
 class GrafflParser(Parser):
