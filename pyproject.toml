@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "graffl"
-version = "0.2.0"
+version = "0.2.1"
 authors = [
     { name = "Michael Hedenus", email = "michael@hedenus.de" },
 ]
@@ -26,6 +26,9 @@ Homepage = "https://github.com/mhedenus/graffl"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.lark", "*.json"]
 
 [project.scripts]
 graffl = "graffl.cli:main"
