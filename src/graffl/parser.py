@@ -129,6 +129,7 @@ class GrafflASTInterpreter(Interpreter):
         if self.current_inner_graph:
             if not subject in self.current_entities_in_inner_graph:
                 self.add_triple((self.current_inner_graph, self.group_contains, subject))
+                self.current_entities_in_inner_graph.add(subject)
 
         self.current_subject = subject
 
