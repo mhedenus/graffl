@@ -9,6 +9,14 @@ class GrafflConfig:
     def __init__(self):
         # Default fallback value
         self.uri_prefix = "https://www.hedenus.de/graffl/"
+        self.dictionary = {
+            ":": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+            "a": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        }
+        self.uri_properties = {
+            "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+        }
+
 
     def load_from_json(self, filepath: str):
         """Loads configurations from a JSON file and overrides defaults."""

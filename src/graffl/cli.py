@@ -1,6 +1,8 @@
 import argparse
 import logging
 import sys
+from pathlib import Path
+
 from rdflib import Graph
 
 # Import the global config object and our parser
@@ -23,6 +25,12 @@ def main():
     arg_parser.add_argument(
         "-c", "--config",
         help="Path to an optional config.json file",
+        default=None
+    )
+
+    arg_parser.add_argument(
+        "-o", "--output",
+        help="Path to an optional output Turtle file",
         default=None
     )
 
@@ -69,10 +77,13 @@ def main():
         logger.error(f"An error occurred during parsing: {e}")
         sys.exit(1)
 
-    # 5. Output as N-Triples to stdout
-    # The serialize method returns bytes, so we decode it to a string for printing
-    output = g.serialize(format="nt")
-    print(output)
+    # 5. Output
+    if args.output:
+        logger.debug(f"Writing output to {args.output}")
+        g.serialize(format="turtle", destination=args.output)
+    else:
+        output = g.serialize(format="turtle")
+        print(output)
 
 
 if __name__ == "__main__":

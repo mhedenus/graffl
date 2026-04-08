@@ -1,10 +1,25 @@
-@ prefix  urn:example.org#
+@ prefix  http://www.example.org/test1/
 
-    Michael : x
+---- Kreis-1 ----------
+
+    Michael : Person
         "hat Geburtstag" 08.02.1974
-        email michael@hedenus.de
-        homepage https://www.hedenus.de#/~mhedenus/?q1=x1&q2=x2()#1
-        mag -> Doris
+        email           <mailto:michael@hedenus.de>
+        bild            ../images/michael.png
+        homepage        https://www.hedenus.de#/~mhedenus/?q1=x1&q2=x2()#1
+        mag             -> Doris
 
 
    Doris mag -> Michael
+
+ ------------------------
+
+ Kreis-1 verkehrtNichtMit -> Kreis-2
+
+ ---- Kreis-2 ----------
+
+ X
+
+ Y
+
+ -----------------------

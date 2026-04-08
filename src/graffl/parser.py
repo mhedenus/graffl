@@ -1,7 +1,7 @@
 import os
 import logging
 from urllib.parse import quote
-from rdflib import URIRef, Literal, Graph
+from rdflib import URIRef, Literal, Graph, RDFS
 from rdflib.parser import Parser
 from lark import Lark, Token
 from lark.visitors import Interpreter
@@ -22,29 +22,34 @@ class GrafflASTInterpreter(Interpreter):
 
     def __init__(self, sink):
         self.main_sink = sink
-        self.current_graph = self.main_sink
 
         # --- Zustandsvariablen (State) ---
+        self.entities = {}
+        self.current_inner_graph = None
+
         self.current_subject = None
         self.current_predicate = None
         self.current_predicate_type = None  # 'property' oder 'relation'
 
-        # Lade das Standard-Präfix in den lokalen Zustand
         self.current_uri_prefix = CONFIG.uri_prefix
+        self.dictionary = dict(CONFIG.dictionary)
+        self.uri_properties = {URIRef(i) for i in CONFIG.uri_properties}
+
 
     # ==========================================
     # Hilfsmethoden für RDF-Knoten
     # ==========================================
 
+    def _is_uri(self, val):
+        return val.startswith('<') and val.endswith('>')
+
     def _get_raw_value(self, node):
-        """Holt den nackten Textwert aus einem Knoten oder Token."""
         if not getattr(node, 'children', None):
             return str(node)
         token = node.children[0]
         return token.value if isinstance(token, Token) else str(token)
 
     def _clean_string(self, val):
-        """Entfernt Anführungszeichen von normalen und mehrzeiligen Strings."""
         if val.startswith('"""') and val.endswith('"""'):
             return val[3:-3]
         elif val.startswith('"') and val.endswith('"'):
@@ -52,17 +57,17 @@ class GrafflASTInterpreter(Interpreter):
         return val
 
     def _make_uri(self, val):
-        """Erzeugt eine saubere, %-kodierte URIRef."""
-        # Explizite URIs in Klammern: <http://...>
-        if val.startswith('<') and val.endswith('>'):
+        if self._is_uri(val):
             return URIRef(val[1:-1])
 
-        # Zitate entfernen, falls der Wert als STRING kam
         clean_val = self._clean_string(val)
 
-        # Präfix anhängen und URL-kodieren (safe="/:=#" schützt gewollte Trenner)
-        encoded_val = quote(clean_val, safe="/:=#")
-        return URIRef(f"{self.current_uri_prefix}{encoded_val}")
+        if clean_val in self.dictionary:
+            return URIRef(self.dictionary[clean_val])
+        else:
+            # Präfix anhängen und URL-kodieren (safe="/:=#" schützt gewollte Trenner)
+            encoded_val = quote(clean_val, safe="/:=#")
+            return URIRef(f"{self.current_uri_prefix}{encoded_val}")
 
     # ==========================================
     # Interpreter-Methoden (Top-Down Logik)
@@ -86,21 +91,14 @@ class GrafflASTInterpreter(Interpreter):
                 logger.debug(f"URI prefix overridden by script: {self.current_uri_prefix}")
 
     def inner_graph(self, tree):
-        """Betritt einen inneren Graphen, verarbeitet ihn und verlässt ihn wieder."""
-        # 1. Vorherigen Graphen merken
-        previous_graph = self.current_graph
 
-        # 2. Kontext wechseln
         graph_name_str = self._get_raw_value(tree.children[0])
-        self.current_graph = Graph(identifier=self._make_uri(graph_name_str))
         logger.debug(f"Entering inner graph: {graph_name_str}")
 
-        # 3. Den Interpreter anweisen, die Blöcke im Graphen abzuarbeiten
         self.visit_children(tree)
 
-        # 4. Kontext wiederherstellen (Graphen verlassen)
         logger.debug(f"Leaving inner graph: {graph_name_str}")
-        self.current_graph = previous_graph
+
 
     def block(self, tree):
         """Setzt den Tripel-Zustand beim Start eines neuen Blocks zurück."""
@@ -113,7 +111,13 @@ class GrafflASTInterpreter(Interpreter):
 
     def subject(self, tree):
         val = self._get_raw_value(tree)
-        self.current_subject = self._make_uri(val)
+        subject = self._make_uri(val)
+
+        if not val in self.entities:
+            self.entities[val] = self.current_subject
+            self.main_sink.add((subject, RDFS.label, Literal(val)))
+
+        self.current_subject = subject
 
     def predicate_property(self, tree):
         val = self._get_raw_value(tree)
@@ -130,9 +134,12 @@ class GrafflASTInterpreter(Interpreter):
 
         # --- Zuweisung nach Prädikatstyp ---
         if self.current_predicate_type == 'property':
-            # Property erzwingt immer ein Literal
-            clean_val = self._clean_string(val)
-            obj = Literal(clean_val)
+            # Property erzwingt immer ein Literal außer wenn ausdrücklich URI oder Spezial
+            if self._is_uri(val) or (self.current_predicate in self.uri_properties):
+                obj = self._make_uri(val)
+            else:
+                clean_val = self._clean_string(val)
+                obj = Literal(clean_val)
 
         elif self.current_predicate_type == 'relation':
             # Relation erzwingt immer eine URI
@@ -141,21 +148,18 @@ class GrafflASTInterpreter(Interpreter):
         else:
             return
 
-            # Tripel in den aktuell aktiven Graphen schreiben
         if self.current_subject and self.current_predicate and obj:
             logger.debug(f"Adding triple: ({self.current_subject}, {self.current_predicate}, {obj})")
-            self.current_graph.add((self.current_subject, self.current_predicate, obj))
+            self.main_sink.add((self.current_subject, self.current_predicate, obj))
 
 
 class GrafflParser(Parser):
     """
-    Ein benutzerdefinierter Parser für das RDF-Format 'graffl'.
+    Custom Parser for RDF-format 'graffl'.
     """
-
     def __init__(self):
         super().__init__()
 
-        # Grammatik laden
         with open(GRAMMAR_FILE, 'r', encoding='utf-8') as f:
             grammar_text = f.read()
 
@@ -163,21 +167,15 @@ class GrafflParser(Parser):
         self.lark_parser = Lark(grammar_text, start='start', parser='lalr')
 
     def parse(self, source, sink, **kwargs):
-        """
-        Liest 'graffl' Daten aus einer Quelle und schreibt die Tripel in den Zielgraphen (sink).
-        """
         stream = source.getCharacterStream()
         if stream is None:
             raise ValueError("No character stream available.")
 
         content = stream.read()
 
-        # 1. AST bauen
         tree = self.lark_parser.parse(content)
 
-        # DEBUG: Baum-Struktur im Log anzeigen
         logger.debug(f"--- AST STRUCTURE ---\n{tree.pretty()}\n---------------------")
 
-        # 2. Baum mit dem Interpreter ablaufen
         interpreter = GrafflASTInterpreter(sink)
         interpreter.visit(tree)
