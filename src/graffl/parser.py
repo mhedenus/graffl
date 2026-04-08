@@ -24,7 +24,7 @@ class GrafflASTInterpreter(Interpreter):
         self.sink = sink
 
         # --- Zustandsvariablen (State) ---
-        self.entities = {}
+        self.subjects_seen = set()
         self.current_inner_graph = None
         self.current_entities_in_inner_graph = None
 
@@ -73,6 +73,11 @@ class GrafflASTInterpreter(Interpreter):
             encoded_val = quote(clean_val, safe="/:=#")
             return URIRef(f"{self.current_uri_prefix}{encoded_val}")
 
+    def _remember_subject(self, subject, label=""):
+        if not subject in self.subjects_seen:
+            self.add_triple((subject, RDFS.label, Literal(label)))
+            self.subjects_seen.add(subject)
+
     # ==========================================
     # Interpreter-Methoden (Top-Down Logik)
     # ==========================================
@@ -96,12 +101,14 @@ class GrafflASTInterpreter(Interpreter):
 
     def inner_graph(self, tree):
 
-        graph_name_str = self._clean_string(self._get_raw_value(tree.children[0]))
+        val = self._get_raw_value(tree.children[0])
+        graph_name_str = self._clean_string(val)
         logger.debug(f"Entering inner graph: {graph_name_str}")
 
-        self.current_inner_graph = self._make_uri(graph_name_str)
+        self.current_inner_graph = self._make_uri(val)
         self.add_triple((self.current_inner_graph, RDF.type, self.group_type))
-        self.add_triple((self.current_inner_graph, RDFS.label, Literal(graph_name_str)))
+        self._remember_subject(self.current_inner_graph, graph_name_str)
+
         self.current_entities_in_inner_graph = set()
 
         self.visit_children(tree)
@@ -110,7 +117,6 @@ class GrafflASTInterpreter(Interpreter):
         self.current_entities_in_inner_graph = None
 
         logger.debug(f"Leaving inner graph: {graph_name_str}")
-
 
     def block(self, tree):
         self.current_subject = None
@@ -121,10 +127,7 @@ class GrafflASTInterpreter(Interpreter):
     def subject(self, tree):
         val = self._get_raw_value(tree)
         subject = self._make_uri(val)
-
-        if not val in self.entities:
-            self.add_triple((subject, RDFS.label, Literal(self._clean_string(val))))
-            self.entities[val] = self.current_subject
+        self._remember_subject(subject, self._clean_string(val))
 
         if self.current_inner_graph:
             if not subject in self.current_entities_in_inner_graph:

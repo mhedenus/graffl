@@ -1,27 +1,29 @@
-@ prefix  http://www.example.org/test1/
+@prefix http://example.org/team2/
 
----- "Innerer Kreis" ----------
+TeamMember : Class
 
-    Michael : Person
-        "hat Geburtstag" 08.02.1974
-        email           <mailto:michael@hedenus.de>
-        bild            ../images/michael.png
-        homepage        https://www.hedenus.de#/~mhedenus/?q1=x1&q2=x2()#1
-        mag             -> Doris
+TeamLead : Class
+    subClassOf -> TeamMember
 
 
-   Doris mag -> Michael
-
- ------------------------
+"Team 1" worksWith -> "Team 2"
 
 
+----"Team 1"-----
+
+    Alice : TeamLead
+
+    Bob : TeamMember
+
+    Chris : TeamMember
+
+-----------------
 
 
- ---- "Äußerer Kreis" ----------
+----<urn:team2>-----
 
-"X"
+    David : TeamLead
 
-    "Innerer Kreis" verkhertNichtMit -> "X"
+    Egon : TeamMember
 
-
- ---------------------------------
+-----------------
