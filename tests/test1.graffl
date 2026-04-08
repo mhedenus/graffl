@@ -1,5 +1,7 @@
 @prefix http://example.org/team2/
 
+
+
 TeamMember : Class
 
 TeamLead : Class
@@ -7,6 +9,8 @@ TeamLead : Class
 
 
 "Team 1" worksWith -> "Team 2"
+
+
 
 
 ----"Team 1"-----
