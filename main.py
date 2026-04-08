@@ -1,11 +1,19 @@
+import logging
+
 from rdflib import Graph
 
 import graffl.parser
 
+log_level = logging.DEBUG
+logging.basicConfig(
+    level=log_level,
+    format="%(levelname)s: %(message)s"
+)
+
 g = Graph()
 
 test_graffl_data = """
-@ p1 p2 p3
+@ prefix  urn:exmaple.org#
 
     Michael : x
         "hat Geburtstag" 08.02.1974
@@ -15,15 +23,6 @@ test_graffl_data = """
     
     Doris
     
-
-    
----- I1 ----
-X
-
-Y
-------------
-
-
 
 """
 

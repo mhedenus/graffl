@@ -28,7 +28,7 @@ Homepage = "https://github.com/mhedenus/graffl"
 where = ["src"]
 
 [project.scripts]
-rdf2graphml = "graffl.cli:main"
+graffl = "graffl.cli:main"
 
 [project.optional-dependencies]
 dev = [

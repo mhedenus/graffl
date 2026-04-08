@@ -1,0 +1,10 @@
+@ prefix  urn:example.org#
+
+    Michael : x
+        "hat Geburtstag" 08.02.1974
+        email michael@hedenus.de
+        homepage https://www.hedenus.de#/~mhedenus/?q1=x1&q2=x2()#1
+        mag -> Doris
+
+
+   Doris mag -> Michael
