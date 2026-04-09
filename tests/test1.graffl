@@ -2,32 +2,9 @@
 
 
 
-TeamMember : Class
+s1 c1 -> [ p1 "x" ]
+   c2 -> [
+    p2 [ p2.1 "y2.1" ]
+    ]
+   c3 -> [ p3 "z" ]
 
-TeamLead : Class
-    subClassOf -> TeamMember
-
-
-"Team 1" worksWith -> "Team 2"
-
-
-
-
-----"Team 1"-----
-
-    Alice : TeamLead
-
-    Bob : TeamMember
-
-    Chris : TeamMember
-
------------------
-
-
-----<urn:team2>-----
-
-    David : TeamLead
-
-    Egon : TeamMember
-
------------------

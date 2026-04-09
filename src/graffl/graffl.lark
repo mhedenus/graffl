@@ -6,13 +6,13 @@ start: _nl* _content?
 
 _content: directives graphs? | graphs
 
-graphs: (_blocks | inner_graph)+
+graphs: (_blocks | group_graph)+
 
-inner_graph: _inner_graph_start _blocks? _inner_graph_end
+group_graph: _group_graph_start _blocks? _group_graph_end
 
-_inner_graph_start: _MINUS_SEP graph_name _MINUS_SEP? _nl*
+_group_graph_start: _MINUS_SEP graph_name _MINUS_SEP? _nl*
 
-_inner_graph_end: _MINUS_SEP _nl*
+_group_graph_end: _MINUS_SEP _nl*
 
 graph_name: WORD
 
@@ -31,20 +31,28 @@ block: _first_statement_line _following_statement_lines*
 _first_statement_line: subject _predicate_object? _SINGLE_NL*
 _following_statement_lines: _predicate_object _SINGLE_NL*
 
-_predicate_object: _predicate object
+_predicate_object: _predicate (object | _blank_node)
 
 subject: WORD
+
 _predicate: predicate_property | predicate_relation
 predicate_property: WORD
 predicate_relation: WORD "->"
+
 object: WORD
+
+_blank_node: blank_node_begin _following_statement_lines* blank_node_end
+
+blank_node_begin: "[" _SINGLE_NL?
+
+blank_node_end: "]"
 
 
 // ==========================================
 // Tokens & Hilfsregeln
 // ==========================================
 
-WORD: /[a-zäöüßA-ZÄÖÜ0-9_.+#!?%$&\/():*~][a-zäöüßA-ZÄÖÜ0-9_.+#!?%$&\/()@\[\]:*~=-]*/ | URI | STRING | ML_STRING
+WORD: /[a-zäöüßA-ZÄÖÜ0-9_.+#!?%$&\/():*~;][a-zäöüßA-ZÄÖÜ0-9_.+#!?%$&\/()@\[\]:*~=-]*/ | URI | STRING | ML_STRING
 
 URI: /<[^>]+>/
 

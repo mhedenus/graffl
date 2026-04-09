@@ -1,7 +1,7 @@
 import os
 import logging
 from urllib.parse import quote
-from rdflib import URIRef, Literal, Graph, RDFS, RDF
+from rdflib import URIRef, Literal, Graph, RDFS, RDF, BNode
 from rdflib.parser import Parser
 from lark import Lark, Token
 from lark.visitors import Interpreter
@@ -25,12 +25,13 @@ class GrafflASTInterpreter(Interpreter):
 
         # --- Zustandsvariablen (State) ---
         self.subjects_seen = set()
-        self.current_inner_graph = None
-        self.current_entities_in_inner_graph = None
+        self.current_group_graph = None
+        self.current_entities_in_group_graph = None
 
         self.current_subject = None
         self.current_predicate = None
         self.current_predicate_type = None  # 'property' oder 'relation'
+        self.current_subject_stack = None
 
         self.current_uri_prefix = CONFIG.uri_prefix
         self.dictionary = dict(CONFIG.dictionary)
@@ -99,22 +100,22 @@ class GrafflASTInterpreter(Interpreter):
                 self.current_uri_prefix = new_prefix
                 logger.debug(f"URI prefix overridden by script: {self.current_uri_prefix}")
 
-    def inner_graph(self, tree):
+    def group_graph(self, tree):
 
         val = self._get_raw_value(tree.children[0])
         graph_name_str = self._clean_string(val)
         logger.debug(f"Entering inner graph: {graph_name_str}")
 
-        self.current_inner_graph = self._make_uri(val)
-        self.add_triple((self.current_inner_graph, RDF.type, self.group_type))
-        self._remember_subject(self.current_inner_graph, graph_name_str)
+        self.current_group_graph = self._make_uri(val)
+        self.add_triple((self.current_group_graph, RDF.type, self.group_type))
+        self._remember_subject(self.current_group_graph, graph_name_str)
 
-        self.current_entities_in_inner_graph = set()
+        self.current_entities_in_group_graph = set()
 
         self.visit_children(tree)
 
-        self.current_inner_graph = None
-        self.current_entities_in_inner_graph = None
+        self.current_group_graph = None
+        self.current_entities_in_group_graph = None
 
         logger.debug(f"Leaving inner graph: {graph_name_str}")
 
@@ -128,13 +129,30 @@ class GrafflASTInterpreter(Interpreter):
         val = self._get_raw_value(tree)
         subject = self._make_uri(val)
         self._remember_subject(subject, self._clean_string(val))
+        self.current_subject_stack = []
+        self.current_subject_stack.append(subject)
 
-        if self.current_inner_graph:
-            if not subject in self.current_entities_in_inner_graph:
-                self.add_triple((self.current_inner_graph, self.group_contains, subject))
-                self.current_entities_in_inner_graph.add(subject)
+        if self.current_group_graph:
+            if not subject in self.current_entities_in_group_graph:
+                self.add_triple((self.current_group_graph, self.group_contains, subject))
+                self.current_entities_in_group_graph.add(subject)
 
         self.current_subject = subject
+
+    def blank_node_begin(self, tree):
+        bnode = BNode()
+        self.add_triple((self.current_subject, self.current_predicate, bnode))
+        self.current_subject_stack.append(bnode)
+        self.current_subject = bnode
+
+        if self.current_group_graph:
+            if not bnode in self.current_entities_in_group_graph:
+                self.add_triple((self.current_group_graph, self.group_contains, bnode))
+                self.current_entities_in_group_graph.add(bnode)
+
+    def blank_node_end(self, tree):
+        self.current_subject_stack.pop()
+        self.current_subject = self.current_subject_stack[-1]
 
     def predicate_property(self, tree):
         val = self._get_raw_value(tree)
