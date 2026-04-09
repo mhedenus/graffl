@@ -2,13 +2,11 @@
   <img src="docs/graffl.png" alt="graffl Logo" width="400" />
 </div>
 
-# graffl
-
 (pronounced g-raffl)
 
-This is an __*EXPERIMENTAL*__  RDF scratch pad file format.
+__graffl__ is an _experimental RDF scratch pad file format.
 Its purpuse is to write something down that is immediately
-understood as graph data. No annoying syntax bits like comma, or dots!
+understood as graph data. No annoying syntax like comma or dots!
 
 Example:
 
