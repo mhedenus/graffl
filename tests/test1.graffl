@@ -1,10 +1,5 @@
 @prefix http://example.org/team2/
 
 
-
-s1 c1 -> [ p1 "x" ]
-   c2 -> [
-    p2 [ p2.1 "y2.1" ]
-    ]
-   c3 -> [ p3 "z" ]
+(1) a Note
 

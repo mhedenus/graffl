@@ -52,9 +52,11 @@ blank_node_end: "]"
 // Tokens & Hilfsregeln
 // ==========================================
 
-WORD: /[a-zäöüßA-ZÄÖÜ0-9_.+#!?%$&\/():*~;][a-zäöüßA-ZÄÖÜ0-9_.+#!?%$&\/()@\[\]:*~=-]*/ | URI | STRING | ML_STRING
+WORD: /[a-zäöüßA-ZÄÖÜ0-9_.+#!?%$&\/:*~;][a-zäöüßA-ZÄÖÜ0-9_.+#!?%$&\/()@\[\]:*~=-]*/ | URI | NODEREF | STRING | ML_STRING
 
 URI: /<[^>]+>/
+
+NODEREF:  /\([^\)]+\)/
 
 _MINUS_SEP: /-{4,}/
 

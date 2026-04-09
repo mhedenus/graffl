@@ -48,13 +48,16 @@ class GrafflASTInterpreter(Interpreter):
     def _is_uri(self, val):
         return val.startswith('<') and val.endswith('>')
 
+    def _is_noderef(self, val):
+        return val.startswith('(') and val.endswith(')')
+
     def _get_raw_value(self, node):
         if not getattr(node, 'children', None):
             return str(node)
         token = node.children[0]
         return token.value if isinstance(token, Token) else str(token)
 
-    def _clean_string(self, val):
+    def _strip_quotes(self, val):
         if val.startswith('"""') and val.endswith('"""'):
             return val[3:-3]
         elif val.startswith('"') and val.endswith('"'):
@@ -65,18 +68,21 @@ class GrafflASTInterpreter(Interpreter):
         if self._is_uri(val):
             return URIRef(val[1:-1])
 
-        clean_val = self._clean_string(val)
+        clean_val = self._strip_quotes(val)
 
         if clean_val in self.dictionary:
             return URIRef(self.dictionary[clean_val])
         else:
+            if self._is_noderef(clean_val):
+                clean_val = clean_val[1:-1] # brackets not in URI
             # Präfix anhängen und URL-kodieren (safe="/:=#" schützt gewollte Trenner)
             encoded_val = quote(clean_val, safe="/:=#")
             return URIRef(f"{self.current_uri_prefix}{encoded_val}")
 
-    def _remember_subject(self, subject, label=""):
+    def _remember_subject(self, subject, label):
         if not subject in self.subjects_seen:
-            self.add_triple((subject, RDFS.label, Literal(label)))
+            if not self._is_noderef(label):
+                self.add_triple((subject, RDFS.label, Literal(label)))
             self.subjects_seen.add(subject)
 
     # ==========================================
@@ -103,7 +109,7 @@ class GrafflASTInterpreter(Interpreter):
     def group_graph(self, tree):
 
         val = self._get_raw_value(tree.children[0])
-        graph_name_str = self._clean_string(val)
+        graph_name_str = self._strip_quotes(val)
         logger.debug(f"Entering inner graph: {graph_name_str}")
 
         self.current_group_graph = self._make_uri(val)
@@ -128,7 +134,7 @@ class GrafflASTInterpreter(Interpreter):
     def subject(self, tree):
         val = self._get_raw_value(tree)
         subject = self._make_uri(val)
-        self._remember_subject(subject, self._clean_string(val))
+        self._remember_subject(subject, self._strip_quotes(val))
         self.current_subject_stack = []
         self.current_subject_stack.append(subject)
 
@@ -172,7 +178,7 @@ class GrafflASTInterpreter(Interpreter):
             if self._is_uri(val) or (self.current_predicate in self.uri_properties):
                 obj = self._make_uri(val)
             else:
-                clean_val = self._clean_string(val)
+                clean_val = self._strip_quotes(val)
                 obj = Literal(clean_val)
 
         elif self.current_predicate_type == 'relation':
