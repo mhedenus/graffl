@@ -4,9 +4,9 @@
 
 (pronounced g-raffl)
 
-__graffl__ is an _experimental RDF scratch pad file format.
+__graffl__ is an experimental __RDF__ scratch pad file format.
 Its purpuse is to write something down that is immediately
-understood as graph data. No annoying syntax like comma or dots!
+understood as graph data. No annoying syntax like commas or dots!
 
 Example:
 
