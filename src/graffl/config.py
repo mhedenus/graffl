@@ -1,11 +1,12 @@
 import logging
+import uuid
 
 logger = logging.getLogger(__name__)
 
 
 class GrafflConfig:
     def __init__(self):
-        self.uri_prefix = "https://www.hedenus.de/graffl/"
+        self.uri_prefix = f"https://www.hedenus.de/graffl/{uuid.uuid1()}/"
         self.dictionary = {
 
             ":": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",

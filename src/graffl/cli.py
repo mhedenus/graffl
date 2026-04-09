@@ -1,11 +1,9 @@
 import argparse
 import logging
-import sys
 from importlib import metadata
+from pathlib import Path
 
-from rdflib import Graph
-
-from .parser import GrafflParser
+from .parser import parse
 
 
 def main():
@@ -50,21 +48,7 @@ def main():
     logger = logging.getLogger(__name__)
 
     logger.debug(f"Parsing file: {args.input_file}")
-    g = Graph()
-
-    try:
-        # rdflib requires an InputSource. We can just open the file and pass the string data.
-        with open(args.input_file, 'r', encoding='utf-8') as f:
-            data = f.read()
-
-        g.parse(data=data, format="graffl", plugin_parsers={"graffl": GrafflParser})
-
-    except FileNotFoundError:
-        logger.error(f"Input file not found: {args.input_file}")
-        sys.exit(1)
-    except Exception as e:
-        logger.error(f"An error occurred during parsing: {e}")
-        sys.exit(1)
+    g = parse(Path(args.input_file))
 
     if args.output:
         logger.debug(f"Writing output to {args.output}")

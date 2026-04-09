@@ -1,5 +1,6 @@
 import os
 import logging
+from pathlib import Path
 from urllib.parse import quote
 from rdflib import URIRef, Literal, Graph, RDFS, RDF, BNode
 from rdflib.parser import Parser
@@ -223,3 +224,19 @@ class GrafflParser(Parser):
 
         interpreter = GrafflASTInterpreter(sink)
         interpreter.visit(tree)
+
+
+def parse(input):
+    data = None
+    if isinstance(input, Path):
+        with open(input, 'r', encoding='utf-8') as f:
+            data = f.read()
+    if isinstance(input, str):
+        data = input
+
+    if data:
+        g = Graph()
+        g.parse(data=data, format="graffl", plugin_parsers={"graffl": GrafflParser})
+        return g
+    else:
+        raise Exception(f"Unsupported input: {type(input)}")
