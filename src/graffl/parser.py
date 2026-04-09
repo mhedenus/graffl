@@ -234,8 +234,12 @@ def parse(input):
     if isinstance(input, str):
         data = input
 
+    g = Graph()
+
+    if data == "":
+        return g
+
     if data:
-        g = Graph()
         g.parse(data=data, format="graffl", plugin_parsers={"graffl": GrafflParser})
         return g
     else:
