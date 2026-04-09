@@ -1,11 +1,20 @@
-
-
 <div>
-  <img src="docs/graffl.png" alt="graffl Logo" width="250" />
+  <img src="docs/graffl.png" alt="graffl Logo" width="400" />
 </div>
 
-# Graffl
+# graffl
 
-An RDF scratch pad file format.
+(pronounced g-raffl)
 
-__Note__: *Experimental!*
+This is an __*EXPERIMENTAL*__  RDF scratch pad file format.
+Its purpuse is to write something down that is immediately
+understood as graph data. No annoying syntax bits like comma, or dots!
+
+Example:
+
+
+    Alice likes -> Bob
+
+It also supports nesting graphs, which is very useful for layouting.
+
+The file format is used by __rdf2graphml__: https://github.com/mhedenus/rdf2graphml
