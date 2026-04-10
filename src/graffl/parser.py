@@ -42,7 +42,7 @@ class Word:
             self.value = self._strip(raw_value)
         elif self._is_ml_string(raw_value):
             self.type = WordType.ML_STRING
-            self.value = self._strip(raw_value)
+            self.value = self._strip_mls_quotes(raw_value)
         elif self._is_string(raw_value):
             self.type = WordType.STRING
             self.value = self._strip(raw_value)

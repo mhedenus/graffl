@@ -1,0 +1,34 @@
+= GRAFFL
+
+=== Basic Structure
+
+*graffl* produces RDF statements consisting of subject, predicate and objects.
+
+The basic structure is a __block__ starting with a subject followed by predicate-object pairs.
+The block is terminated with empty line.
+
+----
+  Alice email alice@example.org
+    likes -> Bob
+
+  Bob email bob@example.org
+    likes -> Alice
+----
+
+=== Nodes
+
+`Alice`: A node with label `Alice`
+
+`"Mr. Bean"`:  A node with label `Mr. Bean`
+
+`"""Mr. Bean"""`:  A node with label `Mr. Bean`
+
+`(my node)`: A node refence, no explicit label
+
+`\<https://example.org>`: A node with specified URI, no explicit label
+
+If the label is a word without whitespace like "Alice",
+then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
+
+
+

@@ -13,6 +13,14 @@ def test_simple_noderef():
     print(toTurtle("(A)"))
 
 
+def test_simple_string():
+    print(toTurtle("\"A\""))
+
+
+def test_simple_mls_string():
+    print(toTurtle("\"\"\"A\"\"\""))
+
+
 def test_hello_world():
     print(toTurtle("World says Hello!"))
 
