@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from enum import Enum
 from pathlib import Path
 from urllib.parse import quote
@@ -14,6 +15,7 @@ from .config import CONFIG
 logger = logging.getLogger(__name__)
 GRAMMAR_FILE = os.path.join(os.path.dirname(__file__), 'graffl.lark')
 
+LI = "*"
 
 class WordType(Enum):
     PLAIN = 0
@@ -64,7 +66,7 @@ class Word:
         return val.startswith('"') and val.endswith('"')
 
     def _is_li(self, val):
-        return val == "-"
+        return val == LI
 
     def _strip(self, val):
         return val[1:-1]
@@ -120,6 +122,13 @@ class GrafflASTInterpreter(Interpreter):
         else:
             encoded_val = quote(val, safe="/:=#")
             return URIRef(f"{self.current_uri_prefix}{encoded_val}")
+
+    def _make_uri_predicate(self, word):
+        if re.match(r"\d+\.", word.value):
+            num = word.value[:-1]
+            return URIRef(f"http://www.w3.org/1999/02/22-rdf-syntax-ns#_{num}")
+        else:
+            return self._make_uri(word)
 
     def _remember_subject(self, subject, word):
         if not subject in self.subjects_seen:
@@ -179,12 +188,12 @@ class GrafflASTInterpreter(Interpreter):
 
     def predicate_property(self, tree):
         word = Word(self._get_raw_value(tree))
-        self.current_predicate = self._make_uri(word)
+        self.current_predicate = self._make_uri_predicate(word)
         self.current_predicate_type = PredicateType.PROPERTY
 
     def predicate_relation(self, tree):
         word = Word(self._get_raw_value(tree.children[0]))
-        self.current_predicate = self._make_uri(word)
+        self.current_predicate = self._make_uri_predicate(word)
         self.current_predicate_type = PredicateType.RELATION
 
     def object(self, tree):
@@ -241,8 +250,7 @@ class GrafflParser(Parser):
         with open(GRAMMAR_FILE, 'r', encoding='utf-8') as f:
             grammar_text = f.read()
 
-        # Wir nutzen den schnellen 'lalr' Parser
-        self.lark_parser = Lark(grammar_text, start='start', parser='lalr')
+        self.lark_parser = Lark(grammar_text, start='start', parser='lalr') # lalr is fast but restricts grammar
 
     def parse(self, source, sink, **kwargs):
         stream = source.getCharacterStream()

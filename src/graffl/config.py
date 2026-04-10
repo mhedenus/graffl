@@ -12,7 +12,10 @@ class GrafflConfig:
             ":": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
             "a": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
             "type": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+            "=": "http://www.w3.org/1999/02/22-rdf-syntax-ns#value",
+            "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#value",
             "Property": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+            "Seq": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq",
 
             "Class": "http://www.w3.org/2000/01/rdf-schema#Class",
             "label": "http://www.w3.org/2000/01/rdf-schema#label",
