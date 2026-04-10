@@ -15,14 +15,17 @@ def test_hello_world():
 def test_1():
     print(toTurtle("Alice likes -> Bob"))
 
-def test_2():
+def test_uri_value():
     print(toTurtle("Alice homepage <https://example.org/~alice>"))
 
-def test31():
-    print(toTurtle("<x:a> <x:b> <x:c>"))
+def test_only_uris():
+    print(toTurtle("<http://example.org/subject> <http://example.org/predicate> <http://example.org/object>"))
 
 def test_noderefs():
     print(toTurtle("(1) implies -> (2)"))
+
+def test_noderef_as_value():
+    print(toTurtle("(1) implies (2)"))
 
 def test_model():
     print(toTurtle("""
@@ -34,6 +37,65 @@ def test_model():
             subClassOf -> TeamMember
     """))
 
+
+def test_group_graph():
+    print(toTurtle("""
+        
+    ----"Group 1"-----
+    
+    A
+    
+    B
+    
+    ------------------
+    
+    
+    ----<urn:group-2>-----
+    
+    ----------------------
+    
+    
+    ---- Group-3 ---------
+    
+    ----------------------
+    
+    
+    
+    ---- (Group 4) ---------
+    
+    A
+    
+    B
+    
+    ------------------------
+    """))
+
+
+def test_blank_nodes    ():
+    print(toTurtle("""
+        (A) hasSomething [
+                with1 "X"
+                with2 [
+                    with3 <urn:Z>
+                ]
+            ]
+    """))
+
+
+
+def test_list():
+    print(toTurtle("""
+        "action items"
+            - "do 1"
+            - "do 2"
+            - "do 3"
+    
+        list1 has [
+            - item1
+            sublist [ - item3 - item4 ]
+            - item2
+            ]
+    """))
 
 
 def toTurtle(src):
