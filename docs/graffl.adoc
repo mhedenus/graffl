@@ -15,6 +15,12 @@ The block is terminated with empty line.
     likes -> Alice
 ----
 
+An object is a literal unless
+
+- the object is  URI like `<mailto:alice@example.org>`
+- the object is specified as `uri_property`
+- the predicate is followed by an arrow `+++->+++` making the pedicate a __relation__
+
 === Nodes
 
 `Alice`: A node with label `Alice`
@@ -30,5 +36,41 @@ The block is terminated with empty line.
 If the label is a word without whitespace like "Alice",
 then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 
+=== Special Properties
+
+`*`: `rdf:li`
+
+`NNN.` where NNN is any non-negative number is read as `rdf:_NNN`
+
+==== Aliases
+
+Every word can be an __alias__ for a URI.
+See the code `src/graffl/config.py` for the current list of predefined aliases.
+
+|===
+| `:`, `a`, `type` | rdf:type
+| `=` , `value`    | rdf:value
+| `Property`       | rdf:Property
+| `Seq`            | rdf:Seq
+| `Class`          | rdfs:Class
+| `label`          | rdfs:label
+| `;`, `comment`   | rdfs:comment
+| `subClassOf`     | rdfs:subClassOf
+|===
 
 
+=== Directives
+
+Directives are at the beginning of the script.
+The start with `@`.
+
+For example:
+-----
+@prefix http://example.org/my#
+
+Alice
+-----
+
+defines the URI prefix attached the node label.
+In this case the resulting URI is `\<http://example.org/my#Alice>`.
+(It is called "prefix" because it is a simple concatenation.)
