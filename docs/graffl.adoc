@@ -13,6 +13,7 @@ The basic structure:
 A __block__ starts with a subject followed by predicate-object pairs.
 The block is terminated with empty line.
 
+Example:
 ----
 @ prefix <http://example.org/ns#>
 
@@ -25,7 +26,8 @@ The block is terminated with empty line.
 
 An object is a literal unless
 
-- the object is  URI like `<mailto:alice@example.org>`
+- the object is a URI like `<mailto:alice@example.org>`
+- an __alias__ has been defined for the object (see beow)
 - the object is specified as `uri_property`
 - the predicate is followed by an arrow `+++->+++` making the pedicate a __relation__
 
@@ -58,12 +60,14 @@ then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 ==== Aliases
 
 Every word can be an __alias__ for a URI.
-For defining an alias in the script use an assginment in an directive, e.g.:
+For defining an __alias__ in the script use an assginment `=` in a directive, e.g.:
 
 ----
-@ x = <http://example.org/data/x>
+@ x = <http://www.example.org/x>
+@ y = <http://fowf#y>
+@ z = <urn:z>
 
-x y -> z
+x y z
 ----
 
 

@@ -149,7 +149,8 @@ def test_seq():
 def test_define_dict():
     print(toTurtle("""
         @x = <http://www.example.org/x>
-        @y = <http://fowf#>
+        @y = <http://fowf#y>
+        @z = <urn:z>
         
         x y -> z
         
