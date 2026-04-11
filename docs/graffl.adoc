@@ -60,7 +60,7 @@ then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 ==== Aliases
 
 Every word can be an __alias__ for a URI.
-For defining an __alias__ in the script use an assginment `=` in a directive, e.g.:
+For defining an alias in the script use an assginment `=` in a directive, e.g.:
 
 ----
 @ x = <http://www.example.org/x>
@@ -70,9 +70,9 @@ For defining an __alias__ in the script use an assginment `=` in a directive, e.
 x y z
 ----
 
-
-
-See the code `src/graffl/config.py` for the current list of predefined aliases.
+Here is a list of predefined aliases.
+See also the code of `src/graffl/config.py`
+for the actual list of predefined aliases.
 
 |===
 | `:`, `a`, `type` | rdf:type
