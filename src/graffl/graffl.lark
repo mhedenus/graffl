@@ -57,6 +57,7 @@ WORD: /[a-zäöüßA-ZÄÖÜ0-9_+#!?%§$&\/:*~=\;][a-zäöüßA-ZÄÖÜ0-9_.+#!?
         | NODEREF
         | STRING
         | ML_STRING
+        | SIGNED_NUMBER
 
 URI: /<[^>]+>/
 
@@ -73,5 +74,6 @@ ML_STRING: /"""[\s\S]*?"""/
 
 
 %import common.ESCAPED_STRING -> STRING
+%import common.SIGNED_NUMBER
 %import common.WS_INLINE
 %ignore WS_INLINE

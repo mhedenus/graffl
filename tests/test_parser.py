@@ -32,8 +32,9 @@ def test_1():
 def test_uri_value():
     print(toTurtle("Alice homepage <https://example.org/~alice>"))
 
+
 def test_number_value():
-    print(toTurtle("x  y -1"))
+    print(toTurtle("x  y -3e+10"))
 
 
 def test_only_uris():
@@ -46,6 +47,13 @@ def test_noderefs():
 
 def test_noderef_as_value():
     print(toTurtle("(1) implies (2)"))
+
+
+def test_prefix():
+    print(toTurtle("""
+    @prefix <http://example.org/ns#>
+        "Mr. Bean"
+    """))
 
 
 def test_model():
@@ -147,6 +155,7 @@ def test_define_dict():
         
         
     """))
+
 
 def toTurtle(src):
     g = graffl.parser.parse(src)

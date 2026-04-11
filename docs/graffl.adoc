@@ -4,10 +4,18 @@
 
 *graffl* produces RDF statements consisting of subject, predicate and objects.
 
-The basic structure is a __block__ starting with a subject followed by predicate-object pairs.
+The basic structure:
+
+. Directives starting with `@`
+. Blocks
+. Optional group graphs
+
+A __block__ starts with a subject followed by predicate-object pairs.
 The block is terminated with empty line.
 
 ----
+@ prefix <http://example.org/ns#>
+
   Alice email alice@example.org
     likes -> Bob
 
@@ -36,19 +44,37 @@ An object is a literal unless
 If the label is a word without whitespace like "Alice",
 then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 
-=== Special Properties
+=== ContainerMembershipProperty
 
-`NNN.` where NNN is any non-negative number is read as `rdf:_NNN`
+`NNN.`, where NNN is any non-negative integer number, produces `rdf:_NNN`, e.g.:
+
+----
+    Tasks
+      1. Beginn
+      2. "do something"
+      3. Done
+----
 
 ==== Aliases
 
 Every word can be an __alias__ for a URI.
+For defining an alias in the script use an assginment in an directive, e.g.:
+
+----
+@ x = <http://example.org/data/x>
+
+x y -> z
+----
+
+
+
 See the code `src/graffl/config.py` for the current list of predefined aliases.
 
 |===
 | `:`, `a`, `type` | rdf:type
 | `=` , `value`    | rdf:value
 | `Property`       | rdf:Property
+| `Datatype`       | rdf:Datatype
 | `Alt`            | rdf:Alt
 | `Bag`            | rdf:Bag
 | `Seq`            | rdf:Seq
@@ -58,21 +84,22 @@ See the code `src/graffl/config.py` for the current list of predefined aliases.
 | `;`, `comment`   | rdfs:comment
 | `subClassOf`     | rdfs:subClassOf
 | `subPropertyOf`  | rdfs:subPropertyOf
+| `seeAlso`        | rdfs:seeAlso
+| `isDefinedBy`    | rdfs:isDefinedBy
 |===
 
 
-=== Directives
+=== Base URI Prefix
 
-Directives are at the beginning of the script.
-The start with `@`.
+The directive `@prefix` defines the base URI prefix.
+It is called "prefix" because the resulting URI is a simple concatenation
+of the prefix with the encoded node label.
 
 For example:
 -----
-@prefix http://example.org/my#
+@prefix <http://example.org/ns#>
 
-Alice
+"Mr. Bean"
 -----
 
-defines the URI prefix attached the node label.
-In this case the resulting URI is `\<http://example.org/my#Alice>`.
-(It is called "prefix" because it is a simple concatenation.)
+produces the URI `\<http://example.org/ns#Mr.%20Bean> `.
