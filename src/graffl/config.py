@@ -15,6 +15,9 @@ class GrafflConfig:
             "=": "http://www.w3.org/1999/02/22-rdf-syntax-ns#value",
             "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#value",
             "Property": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
+            "*": "http://www.w3.org/1999/02/22-rdf-syntax-ns#li",
+            "Alt": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Alt",
+            "Bag": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag",
             "Seq": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq",
 
             "Class": "http://www.w3.org/2000/01/rdf-schema#Class",
@@ -22,6 +25,7 @@ class GrafflConfig:
             "comment": "http://www.w3.org/2000/01/rdf-schema#comment",
             ";": "http://www.w3.org/2000/01/rdf-schema#comment",
             "subClassOf": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+            "subPropertyOf": "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
 
             "color": "https://www.hedenus.de/rdf2graphml/color",
             "shape": "https://www.hedenus.de/rdf2graphml/shape",

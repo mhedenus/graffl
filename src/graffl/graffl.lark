@@ -52,7 +52,11 @@ blank_node_end: "]"
 // Tokens & Hilfsregeln
 // ==========================================
 
-WORD: /[a-zäöüßA-ZÄÖÜ0-9_+#!?%§$&\/:~=;][a-zäöüßA-ZÄÖÜ0-9_.+#!?%§$&\/()@\[\]:*~=-]*/ | URI | NODEREF | STRING | ML_STRING | LI
+WORD: /[a-zäöüßA-ZÄÖÜ0-9_+#!?%§$&\/:*~=\;][a-zäöüßA-ZÄÖÜ0-9_.+#!?%§$&\/()@\[\]:*~=-]*/
+        | URI
+        | NODEREF
+        | STRING
+        | ML_STRING
 
 URI: /<[^>]+>/
 
@@ -67,7 +71,6 @@ _SINGLE_NL: /\r?\n/
 
 ML_STRING: /"""[\s\S]*?"""/
 
-LI: "*"
 
 %import common.ESCAPED_STRING -> STRING
 %import common.WS_INLINE

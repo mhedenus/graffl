@@ -15,7 +15,6 @@ from .config import CONFIG
 logger = logging.getLogger(__name__)
 GRAMMAR_FILE = os.path.join(os.path.dirname(__file__), 'graffl.lark')
 
-LI = "*"
 
 class WordType(Enum):
     PLAIN = 0
@@ -23,7 +22,6 @@ class WordType(Enum):
     NODEREF = 2
     ML_STRING = 3
     STRING = 4
-    LI = 5
 
 
 class PredicateType(Enum):
@@ -46,9 +44,6 @@ class Word:
         elif self._is_string(raw_value):
             self.type = WordType.STRING
             self.value = self._strip(raw_value)
-        elif self._is_li(raw_value):
-            self.type = WordType.LI
-            self.value = raw_value
         else:
             self.type = WordType.PLAIN
             self.value = raw_value
@@ -64,9 +59,6 @@ class Word:
 
     def _is_string(self, val):
         return val.startswith('"') and val.endswith('"')
-
-    def _is_li(self, val):
-        return val == LI
 
     def _strip(self, val):
         return val[1:-1]
@@ -88,7 +80,6 @@ class GrafflASTInterpreter(Interpreter):
         self.current_predicate = None
         self.current_predicate_type = None
         self.current_subject_stack = None
-        self.li_counter = None
 
         self.current_uri_prefix = CONFIG.uri_prefix
         self.dictionary = dict(CONFIG.dictionary)
@@ -112,13 +103,6 @@ class GrafflASTInterpreter(Interpreter):
             return URIRef(self.dictionary[val])
         elif word.type == WordType.URI:
             return URIRef(val)
-        elif word.type == WordType.LI:  # TODO: nested lists
-            if self.li_counter:
-                uri = URIRef(f"http://www.w3.org/1999/02/22-rdf-syntax-ns#_{self.li_counter}")
-                self.li_counter += 1
-                return uri
-            else:
-                return URIRef("http://www.w3.org/1999/02/22-rdf-syntax-ns#li")
         else:
             encoded_val = quote(val, safe="/:=#")
             return URIRef(f"{self.current_uri_prefix}{encoded_val}")
@@ -142,12 +126,18 @@ class GrafflASTInterpreter(Interpreter):
 
     def directive(self, tree):
         if len(tree.children) >= 2:
-            token1 = self._get_raw_value(tree.children[0]).lower()
-            token2 = self._get_raw_value(tree.children[1])
+            token1 = Word(self._get_raw_value(tree.children[0]).lower())
+            token2 = Word(self._get_raw_value(tree.children[1]))
 
-            if token1 == "prefix":
-                self.current_uri_prefix = Word(token2).value
+            if len(tree.children) == 2 and token1.value == "prefix" and token2.type == WordType.URI:
+                self.current_uri_prefix = token2.value
                 logger.debug(f"uri_prefix set: {self.current_uri_prefix}")
+
+            elif len(tree.children) == 3 and token2.value == "=":
+                token3 = Word(self._get_raw_value(tree.children[2]))
+                if token3.type == WordType.URI:
+                    self.dictionary[token1.value] = token3.value
+
 
     def block(self, tree):
         self.current_subject = None
@@ -175,7 +165,6 @@ class GrafflASTInterpreter(Interpreter):
         self.add_triple((self.current_subject, self.current_predicate, bnode))
         self.current_subject_stack.append(bnode)
         self.current_subject = bnode
-        self.li_counter = 1
 
         if self.current_group_graph:
             if not bnode in self.current_subjects_in_group_graph:
@@ -250,7 +239,7 @@ class GrafflParser(Parser):
         with open(GRAMMAR_FILE, 'r', encoding='utf-8') as f:
             grammar_text = f.read()
 
-        self.lark_parser = Lark(grammar_text, start='start', parser='lalr') # lalr is fast but restricts grammar
+        self.lark_parser = Lark(grammar_text, start='start', parser='lalr')  # lalr is fast but restricts grammar
 
     def parse(self, source, sink, **kwargs):
         stream = source.getCharacterStream()

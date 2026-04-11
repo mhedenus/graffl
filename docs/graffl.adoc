@@ -38,8 +38,6 @@ then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 
 === Special Properties
 
-`*`: `rdf:li`
-
 `NNN.` where NNN is any non-negative number is read as `rdf:_NNN`
 
 ==== Aliases
@@ -51,11 +49,15 @@ See the code `src/graffl/config.py` for the current list of predefined aliases.
 | `:`, `a`, `type` | rdf:type
 | `=` , `value`    | rdf:value
 | `Property`       | rdf:Property
+| `Alt`            | rdf:Alt
+| `Bag`            | rdf:Bag
 | `Seq`            | rdf:Seq
+| `*`              | rdf:li
 | `Class`          | rdfs:Class
 | `label`          | rdfs:label
 | `;`, `comment`   | rdfs:comment
 | `subClassOf`     | rdfs:subClassOf
+| `subPropertyOf`  | rdfs:subPropertyOf
 |===
 
 

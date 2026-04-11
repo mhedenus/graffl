@@ -32,6 +32,9 @@ def test_1():
 def test_uri_value():
     print(toTurtle("Alice homepage <https://example.org/~alice>"))
 
+def test_number_value():
+    print(toTurtle("x  y -1"))
+
 
 def test_only_uris():
     print(toTurtle("<http://example.org/subject> <http://example.org/predicate> <http://example.org/object>"))
@@ -134,6 +137,16 @@ def test_seq():
     Job1    
     """))
 
+
+def test_define_dict():
+    print(toTurtle("""
+        @x = <http://www.example.org/x>
+        @y = <http://fowf#>
+        
+        x y -> z
+        
+        
+    """))
 
 def toTurtle(src):
     g = graffl.parser.parse(src)
