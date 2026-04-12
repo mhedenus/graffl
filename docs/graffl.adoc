@@ -2,7 +2,7 @@
 
 === Basic Structure
 
-*graffl* produces RDF statements consisting of subject, predicate and objects.
+*graffl* produces *RDF* statements consisting of subject, predicate and objects.
 
 The basic structure:
 
@@ -24,12 +24,20 @@ Example:
     likes -> Alice
 ----
 
-An object is a literal unless
+An object produces a literal unless
 
 - the object is a URI like `<mailto:alice@example.org>`
-- an __alias__ has been defined for the object (see beow)
-- the object is specified as `uri_property`
-- the predicate is followed by an arrow `+++->+++` making the pedicate a __relation__
+- an __alias__ has been defined for the object (see below)
+- the object is specified as __URI property__ (see below)
+- the predicate is followed by an arrow `+++->+++` ,making the pedicate a __relation__
+
+
+
+=== Group Graphs
+
+TODO...
+
+
 
 === Nodes
 
@@ -46,7 +54,14 @@ An object is a literal unless
 If the label is a word without whitespace like "Alice",
 then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 
+
+=== URI Properties
+
+TODO...
+
 === ContainerMembershipProperty
+
+`*` is a predefined __alias__ (see below) for `rdf:li`.
 
 `NNN.`, where NNN is any non-negative integer number, produces `rdf:_NNN`, e.g.:
 
@@ -57,7 +72,16 @@ then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
       3. Done
 ----
 
-==== Aliases
+=== Languages
+
+An object may be tagged with an ISO 639 language code, e.g.:
+
+-----
+(a) label @en Alice
+    label @tlh QelIS
+-----
+
+=== Aliases
 
 Every word can be an __alias__ for a URI.
 For defining an alias in the script use an assginment `=` in a directive, e.g.:
@@ -75,7 +99,7 @@ See also the code of `src/graffl/config.py`
 for the actual list of predefined aliases.
 
 |===
-| `:`, `a`, `type` | rdf:type
+| `:`, `type` | rdf:type
 | `=` , `value`    | rdf:value
 | `Property`       | rdf:Property
 | `Datatype`       | rdf:Datatype

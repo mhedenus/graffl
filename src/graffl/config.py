@@ -10,7 +10,6 @@ class GrafflConfig:
         self.dictionary = {
 
             ":": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-            "a": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
             "type": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
             "=": "http://www.w3.org/1999/02/22-rdf-syntax-ns#value",
             "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#value",

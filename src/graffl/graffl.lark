@@ -36,7 +36,7 @@ _predicate_object: _predicate (object | _blank_node)
 subject: WORD
 
 _predicate: predicate_property | predicate_relation
-predicate_property: WORD
+predicate_property: WORD LANG_ISO_CODE?
 predicate_relation: WORD "->"
 
 object: WORD
@@ -71,6 +71,8 @@ _DOUBLE_NL: /(?:\r?\n[ \t]*){2,}/
 _SINGLE_NL: /\r?\n/
 
 ML_STRING: /"""[\s\S]*?"""/
+
+LANG_ISO_CODE: /\@[a-z]{2,3}/
 
 
 %import common.ESCAPED_STRING -> STRING

@@ -80,6 +80,7 @@ class GrafflASTInterpreter(Interpreter):
         self.current_predicate = None
         self.current_predicate_type = None
         self.current_subject_stack = None
+        self.current_language = None
 
         self.current_uri_prefix = CONFIG.uri_prefix
         self.dictionary = dict(CONFIG.dictionary)
@@ -138,7 +139,6 @@ class GrafflASTInterpreter(Interpreter):
                 if token3.type == WordType.URI:
                     self.dictionary[token1.value] = token3.value
 
-
     def block(self, tree):
         self.current_subject = None
         self.current_predicate = None
@@ -179,6 +179,8 @@ class GrafflASTInterpreter(Interpreter):
         word = Word(self._get_raw_value(tree))
         self.current_predicate = self._make_uri_predicate(word)
         self.current_predicate_type = PredicateType.PROPERTY
+        if len(tree.children) == 2 and tree.children[1].type == "LANG_ISO_CODE":
+            self.current_language = tree.children[1].value[1:]
 
     def predicate_relation(self, tree):
         word = Word(self._get_raw_value(tree.children[0]))
@@ -195,12 +197,17 @@ class GrafflASTInterpreter(Interpreter):
             if word.type == WordType.URI or (self.current_predicate in self.uri_properties):
                 obj = self._make_uri(word)
             else:
-                obj = Literal(word.value)
+                if self.current_language:
+                    obj = Literal(word.value, lang=self.current_language)
+                else:
+                    obj = Literal(word.value)
         elif self.current_predicate_type == PredicateType.RELATION:
             # relation asserts an URI
             obj = self._make_uri(word)
         else:
             raise Exception(f"illegal state: {self.current_predicate_type}")
+
+        self.current_language = None  # reset in any case
 
         if self.current_subject and self.current_predicate and obj:
             self.add_triple((self.current_subject, self.current_predicate, obj))

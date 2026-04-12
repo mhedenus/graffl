@@ -158,6 +158,15 @@ def test_define_dict():
     """))
 
 
+def test_languages():
+    print(toTurtle("""
+        (a)     label @de Adelheid
+                label Alice
+                label @es Alicia
+                label @tlh QelIS
+    """))
+
+
 def toTurtle(src):
     g = graffl.parser.parse(src)
     ttl = g.serialize(format="turtle")
