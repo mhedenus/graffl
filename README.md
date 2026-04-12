@@ -2,7 +2,8 @@
   <img src="docs/graffl.png" alt="graffl Logo" width="400" />
 </div>
 
-(pronounced g-raffl)
+(pronounced g-raffl, but also derived from the Bavarian 
+word for "Graffl" for "stuff" or "junk")
 
 __graffl__ is an (still) experimental __RDF__ scratch pad file format.
 Its purpose is to write something down that is immediately

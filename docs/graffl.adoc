@@ -1,6 +1,7 @@
 = GRAFFL
+:toc:
 
-=== Basic Structure
+== Basic Structure
 
 *graffl* produces *RDF* statements consisting of subject, predicate and objects.
 
@@ -29,17 +30,12 @@ An object produces a literal unless
 - the object is a URI like `<mailto:alice@example.org>`
 - an __alias__ has been defined for the object (see below)
 - the object is specified as __URI property__ (see below)
-- the predicate is followed by an arrow `+++->+++` ,making the pedicate a __relation__
+- the predicate is followed by an arrow `++->++` ,making the pedicate a __relation__
 
 
 
-=== Group Graphs
 
-TODO...
-
-
-
-=== Nodes
+== Nodes
 
 `Alice`: A node with label `Alice`
 
@@ -55,11 +51,24 @@ If the label is a word without whitespace like "Alice",
 then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 
 
-=== URI Properties
+== URI Properties
 
 TODO...
 
-=== ContainerMembershipProperty
+== Blank Nodes
+
+Objects may be __blank nodes__. They are surrounded by square backets and look very
+much like __Turtle__, e.g.:
+
+-----
+Alice fullName [
+        firstName "Alice"
+        secondName "Jane"
+        lastName "Van Houten"
+    ]
+-----
+
+== Lists and Sequences (Containers)
 
 `*` is a predefined __alias__ (see below) for `rdf:li`.
 
@@ -72,7 +81,7 @@ TODO...
       3. Done
 ----
 
-=== Languages
+== Languages
 
 An object may be tagged with an ISO 639 language code, e.g.:
 
@@ -81,7 +90,7 @@ An object may be tagged with an ISO 639 language code, e.g.:
     label @tlh QelIS
 -----
 
-=== Aliases
+== Aliases
 
 Every word can be an __alias__ for a URI.
 For defining an alias in the script use an assginment `=` in a directive, e.g.:
@@ -117,7 +126,7 @@ for the actual list of predefined aliases.
 |===
 
 
-=== Base URI Prefix
+== Base URI Prefix
 
 The directive `@prefix` defines the base URI prefix.
 It is called "prefix" because the resulting URI is a simple concatenation
@@ -130,4 +139,136 @@ For example:
 "Mr. Bean"
 -----
 
-produces the URI `\<http://example.org/ns#Mr.%20Bean> `.
+produces the URI `++<http://example.org/ns#Mr.%20Bean>++`.
+
+The default URI prefix is `++https://www.hedenus.de/graffl/++` plus a runtime UUID,
+i.e. every parser run will create new unique URIs for the nodes.
+Define a custom prefix for reproducible URIs.
+
+
+== Group Graphs
+
+__Group graphs__ provide simple means to describe groups or even nested graphs.
+
+A __group graph__ header is a node enclosed by  `----`  (at least four minus characters).
+It ends with again `----` (at least four minus characters).
+A node is contained by the __group graph__ if it appears as subject
+within its boundaries.
+__Group graphs__ may contain other __group graphs__.
+However, nested descriptions are not allowed; instead, they must be described side by side.
+
+=== Simple Groups
+
+For example, consider two teams `Team-1` and `Team-2`. Alice and Bob are in the first, Chris and David
+the second team. The teams are working together and both are part of the Agile Release Train.
+You can write this down as follows:
+
+----
+
+    ---- Team-1 ----
+        Alice
+
+        Bob
+    ----------------
+
+    Team-1 worksWith -> Team-2
+
+    ---- Team-2 ----
+        Chris
+
+        David
+    ----------------
+
+    ---- The Agile Release Train ----
+
+        Team-1
+
+        Team-2
+
+    --------------------------------
+
+----
+
+The produced RDF as Turtle:
+
+----
+@prefix ns1: <https://www.hedenus.de/graffl/> .
+@prefix ns2: <https://www.hedenus.de/graffl/9edf4a14-366c-11f1-8458-e08f4ccbe174/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ns2:Team-1 a ns1:Group ;
+    rdfs:label "Team-1" ;
+    ns2:worksWith ns2:Team-2 ;
+    ns1:contains ns2:Alice,
+        ns2:Bob .
+
+ns2:Team-2 a ns1:Group ;
+    rdfs:label "Team-2" ;
+    ns1:contains ns2:Chris,
+        ns2:David .
+
+ns2:The%20Agile%20Release%20Train a ns1:Group ;
+    rdfs:label "The Agile Release Train" ;
+    ns1:contains ns2:Team-1,
+        ns2:Team-2 .
+
+
+ns2:Alice rdfs:label "Alice" .
+
+ns2:Bob rdfs:label "Bob" .
+
+ns2:Chris rdfs:label "Chris" .
+
+ns2:David rdfs:label "David" .
+----
+
+=== Hierarchical Modeling
+
+One important application of this feature is for __breaking down__ things into different levels of details.
+For example, imaging a battery holder which contains three batteries. These batteries are all instances of the same
+class and have the same inner structure. The inners structure of a battery is in the is example
+modeled as connection points and electrochemistry:
+
+----
+
+System : Class
+
+BatteryHolder subClassOf System
+
+Battery subClassOf System
+
+ConnectionPoint subClassOf System
+
+Electrochemistry subClassOf System
+
+
+---- BatteryHolder ----
+
+b1 : Battery
+
+b2 : Battery
+
+b3 : Battery
+
+b1 connectedTo -> b2
+
+b2 connectedTo -> b3
+
+-----------------------
+
+
+---- Battery ----------------------------
+
+plus : ConnectionPoint
+
+minus : ConnectionPoint
+
+electrochemistry : Electrochemistry
+
+minus electricFlow -> electrochemistry
+
+electrochemistry electricFlow -> plus
+
+-----------------------------------------
+
+----

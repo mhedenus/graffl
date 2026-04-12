@@ -70,44 +70,37 @@ def test_model():
 def test_group_graph():
     print(toTurtle("""
         
-    ----"Group 1"-----
-    
-    A
-    
-    B
-    
-    ------------------
-    
-    
-    ----<urn:group-2>-----
-    
-    ----------------------
-    
-    
-    ---- Group-3 ---------
-    
-    ----------------------
-    
-    
-    
-    ---- (Group 4) ---------
-    
-    A
-    
-    B
-    
-    ------------------------
+    ---- Team-1 ----
+        Alice
+
+        Bob
+    ----------------
+
+    Team-1 worksWith -> Team-2
+
+    ---- Team-2 ----
+        Chris
+
+        David
+    ----------------
+
+    ---- "The Agile Release Train" ----
+
+        Team-1
+
+        Team-2
+
+    ----------------------------------
     """))
 
 
 def test_blank_nodes():
     print(toTurtle("""
-        (A) hasSomething [
-                with1 "X"
-                with2 [
-                    with3 <urn:Z>
-                ]
-            ]
+        Alice fullName [
+            firstName "Alice"
+            secondName "Jane"
+            lastName "Van Houten"
+        ]
     """))
 
 
