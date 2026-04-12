@@ -26,7 +26,7 @@ written as Turtle:
 It also supports nesting graphs, which is very useful for layouting.
 See the `src/graffl/graffl.lark` file for the EBNF grammar.
 
-See the documentaiton `src/docs/graffl.adoc`.
+See the documentaiton `docs/graffl.adoc`!
 
 The parser is implemented as extension for __rdflib__: https://github.com/rdflib/rdflib
 
