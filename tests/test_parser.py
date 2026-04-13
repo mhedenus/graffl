@@ -58,16 +58,113 @@ def test_prefix():
 
 def test_model():
     print(toTurtle("""
-        @prefix https://example.org/model#
-        
-        TeamMember : Class
-        
-        TeamLead : Class
-            subClassOf -> TeamMember
-        
-        t : TeamMember
-        
-        x : [ : AnonymousClass ]
+  @prefix <http://example.org/pizza#>
+
+<http://example.org/pizza#>
+    : Ontology
+    label "Die Erweiterte Pizza-Ontologie"
+    comment "Ein komplexer Härtetest für den Graffl-Parser mit OWL DL."
+
+---- "Eigenschaften" ----
+
+hasTopping
+    : ObjectProperty
+    label "hat Belag"
+
+hasBase
+    : ObjectProperty
+    label "hat Boden"
+
+-------------------------
+
+---- "Grundzutaten" ----
+
+PizzaBase : Class
+
+PizzaTopping : Class
+
+CheeseTopping 
+    : Class
+    subClassOf PizzaTopping
+    
+MeatTopping 
+    : Class
+    subClassOf PizzaTopping
+    disjointWith CheeseTopping
+    
+Mozzarella
+    : Class
+    subClassOf CheeseTopping
+    
+Salami
+    : Class
+    subClassOf MeatTopping
+    
+Ham
+    : Class
+    subClassOf MeatTopping
+    
+Jalapeno
+    : Class
+    subClassOf PizzaTopping
+
+------------------------
+
+---- "Komplexe Pizzen" ----
+
+Pizza : Class
+
+SalamiPizza
+    : Class
+    subClassOf [
+        : Class
+        intersectionOf *(
+            Pizza
+            [
+                : Restriction
+                onProperty hasTopping
+                someValuesFrom Salami
+            ]
+            [
+                : Restriction
+                onProperty hasTopping
+                someValuesFrom Mozzarella
+            ]
+        )
+    ]
+
+SpicyPizza
+    : Class
+    equivalentClass [
+        : Class
+        intersectionOf *(
+            Pizza
+            [
+                : Restriction
+                onProperty hasTopping
+                someValuesFrom Jalapeno
+            ]
+        )
+    ]
+
+MeatLoversPizza
+    : Class
+    subClassOf [
+        : Class
+        intersectionOf *(
+            Pizza
+            [
+                : Restriction
+                onProperty hasTopping
+                someValuesFrom [
+                    : Class
+                    unionOf *( Salami Ham )
+                ]
+            ]
+        )
+    ]
+
+---------------------------
     """))
 
 
@@ -108,7 +205,7 @@ def test_blank_nodes():
     """))
 
 
-def test_list():
+def test_container():
     print(toTurtle("""
         "action items"
             * §1.1
@@ -122,6 +219,16 @@ def test_list():
             ]
     """))
 
+
+def test_list_1():
+    print(toTurtle("""
+      Rainbow colors -> *( Red Green Blue )
+    """))
+
+def test_list_2():
+    print(toTurtle("""
+      Rainbow colors *( Red Green Blue )
+    """))
 
 def test_value():
     print(toTurtle("""

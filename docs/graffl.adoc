@@ -31,24 +31,19 @@ An object produces a literal unless:
 - the predicate has been specified to be a  __URI property__ (see below)
 - the predicate is followed by an arrow `++->++` making the predicate a __relation__
 
-
-
-
 == Nodes
 
 `Alice`: A node with label `Alice`
 
-`"Mr. Bean"`:  A node with label `Mr. Bean`
+`"Mr. Bean"`: A node with label `Mr. Bean`
 
-`"""Mr. Bean"""`:  A node with label `Mr. Bean`
+`"""Mr. Bean"""`: A node with label `Mr. Bean`
 
 `(my node)`: A node reference, no explicit label
 
 `\<https://example.org>`: A node with specified URI, no explicit label
 
-If the label is a word without whitespace like "Alice",
-then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
-
+If the label is a word without whitespace like "Alice", then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 
 == Aliases
 
@@ -63,8 +58,7 @@ For defining an alias in the script use an assginment `=` in a directive:
 x y z
 ----
 
-Here is a list of predefined aliases
-(see also the code of `src/graffl/config.py`
+Here is a list of predefined aliases (see also the code of `src/graffl/config.py`
 for the actual list of predefined aliases):
 
 |===
@@ -84,7 +78,6 @@ for the actual list of predefined aliases):
 | `seeAlso`        | rdfs:seeAlso
 | `isDefinedBy`    | rdfs:isDefinedBy
 |===
-
 
 == URI Properties
 
@@ -110,7 +103,8 @@ ns1:Alice rdfs:label "Alice" ;
 Predefined _URI properties_ are:
 
 * `rdf:type`
-
+* `rdfs:subClassOf`
+* all *OWL* predicates
 
 == Property Types
 
@@ -118,8 +112,8 @@ TODO...
 
 == Blank Nodes
 
-Objects may be __blank nodes__. They are surrounded by square brackets and look very
-much like __Turtle__:
+Objects may be __blank nodes__.
+They are surrounded by square brackets and look very much like __Turtle__:
 
 -----
 Alice fullName [
@@ -129,9 +123,7 @@ Alice fullName [
     ]
 -----
 
-== Containers and Lists
-
-=== Container Membership Properties
+== Containers
 
 By default `*` is a predefined __alias__ for `rdf:li`.
 
@@ -143,6 +135,7 @@ A numbering `nnn.`, where nnn is any positive integer number, produces `rdf:_nnn
   2. "do something"
   99. Done
 ----
+
 The produced RDF as __Turtle__:
 
 ----
@@ -153,7 +146,49 @@ The produced RDF as __Turtle__:
     rdf:_99 "Done" .
 ----
 
-== Lists
+== Lists (Collections)
+
+A list (i.e. a rdf:List) starts with `*(` and ends with `)`. The predicate type is applied to the members.
+For example:
+
+----
+Rainbow colors *( Red Green Blue )
+----
+
+will regard the colors as literals whereas
+
+----
+Rainbow colors -> *( Red Green Blue )
+----
+
+will regard the colors as nodes.
+
+=== OWL Modeling
+
+The *OWL* vocabulary is predefined as _URI properties_. This make writing an ontology simple:
+
+----
+@prefix <http://example.org/pizza#>
+
+SalamiPizza
+    : Class
+    subClassOf [
+        : Class
+        intersectionOf *(
+            Pizza
+            [
+                : Restriction
+                onProperty hasTopping
+                someValuesFrom Salami
+            ]
+            [
+                : Restriction
+                onProperty hasTopping
+                someValuesFrom Mozzarella
+            ]
+        )
+    ]
+----
 
 == Languages
 
@@ -164,13 +199,10 @@ An object may be tagged with an ISO 639 language code:
     label @tlh QelIS
 -----
 
-
-
 == Base URI Prefix
 
 The directive `@prefix` defines the base URI prefix.
-It is called "prefix" because the resulting URI is a simple concatenation
-of the prefix with the encoded node label:
+It is called "prefix" because the resulting URI is a simple concatenation of the prefix with the encoded node label:
 
 -----
 @prefix <http://example.org/ns#>
@@ -180,41 +212,35 @@ of the prefix with the encoded node label:
 
 produces the URI `++<http://example.org/ns#Mr.%20Bean>++`.
 
-The default URI prefix is `++https://www.hedenus.de/graffl/++` plus a runtime UUID,
-i.e. every parser run will create new unique URIs for the nodes.
+The default URI prefix is `++https://www.hedenus.de/graffl/++` plus a runtime UUID, i.e. every parser run will create new unique URIs for the nodes.
 Define a custom prefix for reproducible URIs.
-
 
 == Group Graphs
 
-
 __Group graphs__ provide a simple and visual way to cluster statements into logical groups or contexts.
-A __group graph__ begins with a header containing the group's name enclosed
-by `----` (at least four minus characters) and ends with a closing line of `----` (at least four minus characters).
+A __group graph__ begins with a header containing the group's name enclosed by `----` (at least four minus characters) and ends with a closing line of `----` (at least four minus characters).
 Any node that appears as a subject within these boundaries is automatically linked as being contained by the group.
 
 **Important Note on Nesting:**
 The `graffl` syntax does *not* allow you to physically nest one group graph block inside another.
 Trying to open a new group graph before closing the current one will result in a syntax error.
 
-Instead, to model hierarchical structures or logical nesting,
-you must define the group blocks **side by side**.
-You can then establish the hierarchy by simply using a child group's name as a subject within the
-parent group's block, or by linking them with explicit relations.
+Instead, to model hierarchical structures or logical nesting, you must define the group blocks **side by side**.
+You can then establish the hierarchy by simply using a child group's name as a subject within the parent group's block, or by linking them with explicit relations.
 
 === Simple Groups
 
 A __group graph__ header is a node enclosed by  `----`  (at least four minus characters).
 It ends with again `----` (at least four minus characters).
-A node is contained by the __group graph__ if it appears as subject
-within its boundaries.
+A node is contained by the __group graph__ if it appears as subject within its boundaries.
 __Group graphs__ may contain other __group graphs__.
 However, nested descriptions are not allowed; instead, they must be described side by side.
 
 === Simple Groups
 
-For example, consider two teams `Team-1` and `Team-2`. Alice and Bob are in the first, Chris and David
-the second team. The teams are working together and both are part of the Agile Release Train.
+For example, consider two teams `Team-1` and `Team-2`.
+Alice and Bob are in the first, Chris and David the second team.
+The teams are working together and both are part of the Agile Release Train.
 You can write this down as follows:
 
 ----
@@ -278,9 +304,9 @@ ns2:David rdfs:label "David" .
 === Hierarchical Modeling
 
 One important application of this feature is for __breaking down__ things into different levels of details.
-For example, imaging a battery holder which contains three batteries. These batteries are all instances of the same
-class and have the same inner structure. The inners structure of a battery is in the is example
-modeled as connection points and electrochemistry:
+For example, imaging a battery holder which contains three batteries.
+These batteries are all instances of the same class and have the same inner structure.
+The inners structure of a battery is in the is example modeled as connection points and electrochemistry:
 
 ----
 

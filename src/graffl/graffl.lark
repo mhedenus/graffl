@@ -31,7 +31,7 @@ block: _first_statement_line _following_statement_lines*
 _first_statement_line: subject _predicate_object? _SINGLE_NL*
 _following_statement_lines: _predicate_object _SINGLE_NL*
 
-_predicate_object: _predicate (object | _blank_node)
+_predicate_object: _predicate (object | blank_node | rdf_list)
 
 subject: WORD
 
@@ -41,11 +41,10 @@ predicate_relation: WORD "->"
 
 object: WORD
 
-_blank_node: blank_node_begin _following_statement_lines* blank_node_end
+rdf_list: "*(" _SINGLE_NL* list_item* ")"
+list_item: (object | blank_node | rdf_list) _SINGLE_NL*
 
-blank_node_begin: "[" _SINGLE_NL?
-
-blank_node_end: "]"
+blank_node: "[" _SINGLE_NL? _following_statement_lines* "]"
 
 
 // ==========================================
