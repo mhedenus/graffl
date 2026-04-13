@@ -58,8 +58,7 @@ For defining an alias in the script use an assginment `=` in a directive:
 x y z
 ----
 
-Here is a list of predefined aliases (see also the code of `src/graffl/config.py`
-for the actual list of predefined aliases):
+Here is a list of predefined aliases (see also the code of `src/graffl/config.py`):
 
 |===
 | `:`, `type` | rdf:type
@@ -100,13 +99,13 @@ ns1:Alice rdfs:label "Alice" ;
     ns1:state ns1:ACTIVE .
 ----
 
-Predefined _URI properties_ are:
+Predefined _URI properties_ are (see also the code of `src/graffl/config.py`):
 
 * `rdf:type`
 * `rdfs:subClassOf`
-* all *OWL* predicates
+* all *OWL* properties
 
-== Property Types
+== Datatypes
 
 TODO...
 
@@ -148,7 +147,7 @@ The produced RDF as __Turtle__:
 
 == Lists (Collections)
 
-A list (i.e. a rdf:List) starts with `*(` and ends with `)`. The predicate type is applied to the members.
+A list (i.e. a rdf:List) starts with `*(` and ends with `)`. The predicate type is applied to the list members.
 For example:
 
 ----
