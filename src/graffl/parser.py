@@ -1,18 +1,18 @@
 import logging
 import os
 import re
+import uuid
+from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
 from urllib.parse import quote
-from contextlib import contextmanager
 
 from lark import Lark, Token
-from lark.visitors import Interpreter
 from lark.exceptions import UnexpectedInput, LarkError
-
+from lark.visitors import Interpreter
 from rdflib import URIRef, Literal, Graph, RDFS, RDF, BNode
-from rdflib.parser import Parser
 from rdflib.collection import Collection
+from rdflib.parser import Parser
 
 from .config import CONFIG
 
@@ -94,7 +94,7 @@ class GrafflASTInterpreter(Interpreter):
         self.current_subjects_in_group_graph = None
 
         # Konfiguration laden
-        self.current_uri_prefix = CONFIG.uri_prefix
+        self.current_uri_prefix = f"{CONFIG.base_uri}{uuid.uuid1()}/"
         self.dictionary = dict(CONFIG.dictionary)
         self.uri_properties = {URIRef(i) for i in CONFIG.uri_properties}
         self.group_contains = URIRef(CONFIG.group_contains)

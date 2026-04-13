@@ -1,13 +1,11 @@
 import logging
-import uuid
 
 logger = logging.getLogger(__name__)
 
 
 class GrafflConfig:
     def __init__(self):
-        # Basis-Präfix bleibt wie gehabt
-        self.uri_prefix = f"https://www.hedenus.de/graffl/{uuid.uuid1()}/"
+        self.base_uri = "https://www.hedenus.de/graffl/"
 
         self.dictionary = {
             # --- RDF Core ---
