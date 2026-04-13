@@ -36,7 +36,7 @@ _predicate_object: _predicate (object | blank_node | rdf_list)
 subject: WORD
 
 _predicate: predicate_property | predicate_relation
-predicate_property: WORD LANG_ISO_CODE?
+predicate_property: WORD TAG?
 predicate_relation: WORD "->"
 
 object: WORD
@@ -71,7 +71,7 @@ _SINGLE_NL: /\r?\n/
 
 ML_STRING: /"""[\s\S]*?"""/
 
-LANG_ISO_CODE: /\@[a-z]{2,3}/
+TAG: /\@[a-zA-Z0-9_-]+/
 
 
 %import common.ESCAPED_STRING -> STRING

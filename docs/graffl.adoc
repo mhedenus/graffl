@@ -107,8 +107,36 @@ Predefined _URI properties_ are (see also the code of `src/graffl/config.py`):
 
 == Datatypes
 
-TODO...
+**graffl** supports standard XML Schema (XSD) datatypes for literals.
+To specify a datatype, use the `@` symbol followed by the datatype name
+directly before the object value. This uses the exact same, elegant syntax as language tags.
 
+The following XSD datatypes are predefined out of the box:
+`string`, `boolean`, `integer`, `decimal`, `float`, `double`, `dateTime`, `time`, `date`, and `anyURI`.
+
+For example:
+
+----
+Event
+  name @en "Launch Party"
+  startDate @dateTime "2023-11-01T12:00:00"
+  participantCount @integer "42"
+  isPublic @boolean "true"
+----
+
+The produced RDF as __Turtle__:
+
+----
+@prefix ns1: <https://www.hedenus.de/graffl/eec682c0-3747-11f1-9010-e08f4ccbe174/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ns1:Event rdfs:label "Event" ;
+    ns1:isPublic true ;
+    ns1:name "Launch Party"@en ;
+    ns1:participantCount 42 ;
+    ns1:startDate "2023-11-01T12:00:00"^^xsd:dateTime .
+----
 == Blank Nodes
 
 Objects may be __blank nodes__.

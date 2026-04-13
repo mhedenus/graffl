@@ -264,6 +264,15 @@ def test_languages():
                 label @tlh QelIS
     """))
 
+def test_datatypes():
+    print(toTurtle(""" 
+      Event
+          name @en "Launch Party"
+          startDate @dateTime "2023-11-01T12:00:00"
+          participantCount @integer "42"
+          isPublic @boolean "true"          
+    """))
+
 
 def test_uri_predicate():
     print(toTurtle("""

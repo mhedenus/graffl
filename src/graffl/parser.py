@@ -2,17 +2,18 @@ import logging
 import os
 import re
 import uuid
-from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
 from urllib.parse import quote
+from contextlib import contextmanager
 
 from lark import Lark, Token
-from lark.exceptions import UnexpectedInput, LarkError
 from lark.visitors import Interpreter
+from lark.exceptions import UnexpectedInput, LarkError
+
 from rdflib import URIRef, Literal, Graph, RDFS, RDF, BNode
-from rdflib.collection import Collection
 from rdflib.parser import Parser
+from rdflib.collection import Collection
 
 from .config import CONFIG
 
@@ -84,6 +85,7 @@ class GrafflASTInterpreter(Interpreter):
         self.current_predicate_type = None
         self.current_subject_stack = []
         self.current_language = None
+        self.current_datatype = None
 
         # Listen-Management
         self.current_list_items_stack = []
@@ -93,10 +95,14 @@ class GrafflASTInterpreter(Interpreter):
         self.current_group_graph = None
         self.current_subjects_in_group_graph = None
 
-        # Konfiguration laden
         self.current_uri_prefix = f"{CONFIG.base_uri}{uuid.uuid1()}/"
+
         self.dictionary = dict(CONFIG.dictionary)
         self.uri_properties = {URIRef(i) for i in CONFIG.uri_properties}
+
+        # Datatypes
+        self.xsd_types = dict(getattr(CONFIG, 'xsd_types', {}))
+
         self.group_contains = URIRef(CONFIG.group_contains)
         self.group_type = URIRef(CONFIG.group_type)
 
@@ -198,10 +204,20 @@ class GrafflASTInterpreter(Interpreter):
             self.current_subjects_in_group_graph.add(subject)
 
     def predicate_property(self, tree):
-        word = Word(self._get_raw_value(tree))
+        word = Word(self._get_raw_value(tree.children[0]))
         self.current_predicate = self._make_uri_predicate(word)
         self.current_predicate_type = PredicateType.PROPERTY
-        if len(tree.children) == 2: self.current_language = tree.children[1].value[1:]
+
+        self.current_language = None
+        self.current_datatype = None
+
+        if len(tree.children) == 2:
+            tag_value = tree.children[1].value[1:]  # Das '@' am Anfang abschneiden
+
+            if tag_value in self.xsd_types:
+                self.current_datatype = self.xsd_types[tag_value]
+            else:
+                self.current_language = tag_value
 
     def predicate_relation(self, tree):
         word = Word(self._get_raw_value(tree.children[0]))
@@ -210,16 +226,17 @@ class GrafflASTInterpreter(Interpreter):
 
     def object(self, tree):
         word = Word(self._get_raw_value(tree))
-        # Strikte, kontextunabhängige Evaluierung
         if self.current_predicate_type == PredicateType.PROPERTY:
             if word.type == WordType.URI or (self.current_predicate in self.uri_properties):
                 obj = self._make_uri(word)
             else:
-                obj = Literal(word.value, lang=self.current_language)
+                obj = Literal(word.value, lang=self.current_language, datatype=self.current_datatype)
         else:
             obj = self._make_uri(word)
 
         self.current_language = None
+        self.current_datatype = None
+
         if self.route_to_list:
             self.current_list_items_stack[-1].append(obj)
         elif self.current_subject and self.current_predicate:

@@ -1,4 +1,5 @@
 import logging
+from rdflib.namespace import XSD
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +110,19 @@ class GrafflConfig:
             "http://www.w3.org/2002/07/owl#versionIRI",
             "http://www.w3.org/2002/07/owl#versionInfo",
             "http://www.w3.org/2002/07/owl#withRestrictions",
+        }
+
+        self.xsd_types = {
+            "string": XSD.string,
+            "boolean": XSD.boolean,
+            "integer": XSD.integer,
+            "decimal": XSD.decimal,
+            "float": XSD.float,
+            "double": XSD.double,
+            "dateTime": XSD.dateTime,
+            "time": XSD.time,
+            "date": XSD.date,
+            "anyURI": XSD.anyURI,
         }
 
         self.group_contains = "https://www.hedenus.de/graffl/contains"
