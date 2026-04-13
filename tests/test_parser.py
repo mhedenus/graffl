@@ -60,10 +60,14 @@ def test_model():
     print(toTurtle("""
         @prefix https://example.org/model#
         
-        TeamMember a Class
+        TeamMember : Class
         
-        TeamLead a Class
+        TeamLead : Class
             subClassOf -> TeamMember
+        
+        t : TeamMember
+        
+        x : [ : AnonymousClass ]
     """))
 
 
@@ -127,15 +131,10 @@ def test_value():
 
 def test_seq():
     print(toTurtle("""
-        Tasks
-            0. -> init
-            1. -> Job1
-            2. "do something else"
-            4567. "end"
-            
-    init : Task
-    
-    Job1    
+        (Tasks)
+          1. Beginn
+          2. "do something"
+          99. Done
     """))
 
 
@@ -146,7 +145,6 @@ def test_define_dict():
         @z = <urn:z>
         
         x y -> z
-        
         
     """))
 
@@ -160,7 +158,15 @@ def test_languages():
     """))
 
 
+def test_uri_predicate():
+    print(toTurtle("""
+        @ state : URI
+        
+        Alice state ACTIVE
+        """))
+
 def toTurtle(src):
     g = graffl.parser.parse(src)
     ttl = g.serialize(format="turtle")
     return ttl
+

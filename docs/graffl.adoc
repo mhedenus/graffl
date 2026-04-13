@@ -12,9 +12,8 @@ The basic structure:
 . Optional group graphs
 
 A __block__ starts with a subject followed by predicate-object pairs.
-The block is terminated with empty line.
+The block is terminated with empty line:
 
-Example:
 ----
 @ prefix <http://example.org/ns#>
 
@@ -25,12 +24,12 @@ Example:
     likes -> Alice
 ----
 
-An object produces a literal unless
+An object produces a literal unless:
 
 - the object is a URI like `<mailto:alice@example.org>`
-- an __alias__ has been defined for the object (see below)
-- the object is specified as __URI property__ (see below)
-- the predicate is followed by an arrow `++->++` ,making the pedicate a __relation__
+- the object has been defined to be an __alias__ (see below)
+- the predicate has been specified to be a  __URI property__ (see below)
+- the predicate is followed by an arrow `++->++` making the pedicate a __relation__
 
 
 
@@ -51,49 +50,10 @@ If the label is a word without whitespace like "Alice",
 then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 
 
-== URI Properties
-
-TODO...
-
-== Blank Nodes
-
-Objects may be __blank nodes__. They are surrounded by square backets and look very
-much like __Turtle__, e.g.:
-
------
-Alice fullName [
-        firstName "Alice"
-        secondName "Jane"
-        lastName "Van Houten"
-    ]
------
-
-== Lists and Sequences (Containers)
-
-`*` is a predefined __alias__ (see below) for `rdf:li`.
-
-`NNN.`, where NNN is any non-negative integer number, produces `rdf:_NNN`, e.g.:
-
-----
-    Tasks
-      1. Beginn
-      2. "do something"
-      3. Done
-----
-
-== Languages
-
-An object may be tagged with an ISO 639 language code, e.g.:
-
------
-(a) label @en Alice
-    label @tlh QelIS
------
-
 == Aliases
 
 Every word can be an __alias__ for a URI.
-For defining an alias in the script use an assginment `=` in a directive, e.g.:
+For defining an alias in the script use an assginment `=` in a directive:
 
 ----
 @ x = <http://www.example.org/x>
@@ -103,9 +63,9 @@ For defining an alias in the script use an assginment `=` in a directive, e.g.:
 x y z
 ----
 
-Here is a list of predefined aliases.
-See also the code of `src/graffl/config.py`
-for the actual list of predefined aliases.
+Here is a list of predefined aliases
+(see also the code of `src/graffl/config.py`
+for the actual list of predefined aliases):
 
 |===
 | `:`, `type` | rdf:type
@@ -126,13 +86,92 @@ for the actual list of predefined aliases.
 |===
 
 
+== URI Properties
+
+Sometimes a predicate is considered a property but its value shall be an individual.
+Then a predicate can be specified to be a __URI property__ by assigning it a `URI` type:
+
+----
+@ state : URI
+
+Alice state ACTIVE
+----
+
+The produces RDF as __Turtle__:
+
+----
+@prefix ns1: <https://www.hedenus.de/graffl/5e7a8688-3705-11f1-b85e-e08f4ccbe174/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ns1:Alice rdfs:label "Alice" ;
+    ns1:state ns1:ACTIVE .
+----
+
+Predefined _URI properties_ are:
+
+* `rdf:type`
+
+
+== Property Types
+
+TODO...
+
+== Blank Nodes
+
+Objects may be __blank nodes__. They are surrounded by square backets and look very
+much like __Turtle__:
+
+-----
+Alice fullName [
+        firstName "Alice"
+        secondName "Jane"
+        lastName "Van Houten"
+    ]
+-----
+
+== Containers and Lists
+
+=== Container Membership Properties
+
+By default `*` is a predefined __alias__ for `rdf:li`.
+
+A numbering `nnn.`, where nnn is any non-negative integer number, produces `rdf:_nnn`:
+
+----
+(Tasks)
+  1. Beginn
+  2. "do something"
+  99. Done
+----
+The produced RDF as __Turtle__:
+
+----
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+<https://www.hedenus.de/graffl/8e91d8f4-3707-11f1-bfb6-e08f4ccbe174/Tasks> rdf:_1 "Beginn" ;
+    rdf:_2 "do something" ;
+    rdf:_99 "Done" .
+----
+
+== Lists
+
+== Languages
+
+An object may be tagged with an ISO 639 language code:
+
+-----
+(a) label @en Alice
+    label @tlh QelIS
+-----
+
+
+
 == Base URI Prefix
 
 The directive `@prefix` defines the base URI prefix.
 It is called "prefix" because the resulting URI is a simple concatenation
-of the prefix with the encoded node label.
+of the prefix with the encoded node label:
 
-For example:
 -----
 @prefix <http://example.org/ns#>
 
@@ -165,31 +204,30 @@ You can write this down as follows:
 
 ----
 
-    ---- Team-1 ----
-        Alice
+---- Team-1 ----
+    Alice
 
-        Bob
-    ----------------
+    Bob
+----------------
 
-    Team-1 worksWith -> Team-2
+Team-1 worksWith -> Team-2
 
-    ---- Team-2 ----
-        Chris
+---- Team-2 ----
+    Chris
 
-        David
-    ----------------
+    David
+----------------
 
-    ---- The Agile Release Train ----
+---- The Agile Release Train ----
 
-        Team-1
+    Team-1
 
-        Team-2
+    Team-2
 
-    --------------------------------
-
+--------------------------------
 ----
 
-The produced RDF as Turtle:
+The produced RDF as __Turtle__:
 
 ----
 @prefix ns1: <https://www.hedenus.de/graffl/> .

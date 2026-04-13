@@ -48,6 +48,9 @@ class Word:
             self.type = WordType.PLAIN
             self.value = raw_value
 
+    def __str__(self):
+        return f"{self.type}: {self.value}"
+
     def _is_uri(self, val):
         return val.startswith('<') and val.endswith('>')
 
@@ -138,6 +141,16 @@ class GrafflASTInterpreter(Interpreter):
                 token3 = Word(self._get_raw_value(tree.children[2]))
                 if token3.type == WordType.URI:
                     self.dictionary[token1.value] = token3.value
+
+            elif len(tree.children) == 3 and token2.value == ":":
+                token3 = Word(self._get_raw_value(tree.children[2]))
+
+                if token3.value == "URI":
+                    property_uri = self._make_uri(token1)
+                    self.uri_properties.add(property_uri)
+                #TODO typing of predicates
+
+
 
     def block(self, tree):
         self.current_subject = None
