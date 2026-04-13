@@ -6,6 +6,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from lark import Lark, Token
+from lark.exceptions import UnexpectedInput, LarkError
 from lark.visitors import Interpreter
 from rdflib import URIRef, Literal, Graph, RDFS, RDF, BNode
 from rdflib.parser import Parser
@@ -150,8 +151,6 @@ class GrafflASTInterpreter(Interpreter):
                     self.uri_properties.add(property_uri)
                 #TODO typing of predicates
 
-
-
     def block(self, tree):
         self.current_subject = None
         self.current_predicate = None
@@ -276,21 +275,38 @@ class GrafflParser(Parser):
         interpreter.visit(tree)
 
 
-def parse(input):
+def parse(input, graph=None):
+    """
+    Parses graffl input and returns an rdflib Graph.
+    :param input: Path object or string containing graffl data.
+    :param graph: Optional existing rdflib.Graph to populate.
+    """
     data = None
     if isinstance(input, Path):
         with open(input, 'r', encoding='utf-8') as f:
             data = f.read()
-    if isinstance(input, str):
+    elif isinstance(input, str):
         data = input
 
-    g = Graph()
+    # Use provided graph or create a new one
+    g = graph if graph is not None else Graph()
 
     if data == "":
         return g
 
-    if data:
-        g.parse(data=data, format="graffl", plugin_parsers={"graffl": GrafflParser})
-        return g
+    if data is not None:
+        try:
+            # The format 'graffl' is registered via rdflib.plugin in __init__.py
+            g.parse(data=data, format="graffl", plugin_parsers={"graffl": GrafflParser})
+            return g
+        except UnexpectedInput as e:
+            # English error output with visual context
+            error_msg = f"Syntax error in graffl file (Line {e.line}, Column {e.column}):\n\n"
+            error_msg += e.get_context(data)
+            error_msg += f"\nDetails: Unexpected character or token."
+            raise ValueError(error_msg) from None
+        except LarkError as e:
+            # General fallback for other structural parser errors
+            raise ValueError(f"General parser error: {str(e)}") from None
     else:
-        raise ValueError(f"Unsupported input: {type(input)}")
+        raise ValueError(f"Unsupported input type: {type(input)}")

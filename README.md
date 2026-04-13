@@ -5,7 +5,7 @@
 (pronounced g-raffl, but also derived from the Bavarian 
 word for "Graffl" for "stuff" or "junk")
 
-__graffl__ is an (still) experimental __RDF__ scratch pad file format.
+__graffl__ is a (still) experimental __RDF__ scratch pad file format.
 Its purpose is to write something down that is immediately
 understood as graph data. No annoying syntax like dots or commas is required.
 Think of it as Markdown for RDF.
@@ -26,7 +26,7 @@ written as Turtle:
 It also supports nesting graphs, which is very useful for layouting.
 See the `src/graffl/graffl.lark` file for the EBNF grammar.
 
-See the documentaiton `docs/graffl.adoc`!
+See the documentation `docs/graffl.adoc`!
 
 The parser is implemented as extension for __rdflib__: https://github.com/rdflib/rdflib
 

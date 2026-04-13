@@ -29,7 +29,7 @@ An object produces a literal unless:
 - the object is a URI like `<mailto:alice@example.org>`
 - the object has been defined to be an __alias__ (see below)
 - the predicate has been specified to be a  __URI property__ (see below)
-- the predicate is followed by an arrow `++->++` making the pedicate a __relation__
+- the predicate is followed by an arrow `++->++` making the predicate a __relation__
 
 
 
@@ -42,7 +42,7 @@ An object produces a literal unless:
 
 `"""Mr. Bean"""`:  A node with label `Mr. Bean`
 
-`(my node)`: A node refence, no explicit label
+`(my node)`: A node reference, no explicit label
 
 `\<https://example.org>`: A node with specified URI, no explicit label
 
@@ -97,7 +97,7 @@ Then a predicate can be specified to be a __URI property__ by assigning it a `UR
 Alice state ACTIVE
 ----
 
-The produces RDF as __Turtle__:
+The produced RDF as __Turtle__:
 
 ----
 @prefix ns1: <https://www.hedenus.de/graffl/5e7a8688-3705-11f1-b85e-e08f4ccbe174/> .
@@ -118,7 +118,7 @@ TODO...
 
 == Blank Nodes
 
-Objects may be __blank nodes__. They are surrounded by square backets and look very
+Objects may be __blank nodes__. They are surrounded by square brackets and look very
 much like __Turtle__:
 
 -----
@@ -135,7 +135,7 @@ Alice fullName [
 
 By default `*` is a predefined __alias__ for `rdf:li`.
 
-A numbering `nnn.`, where nnn is any non-negative integer number, produces `rdf:_nnn`:
+A numbering `nnn.`, where nnn is any positive integer number, produces `rdf:_nnn`:
 
 ----
 (Tasks)
@@ -187,7 +187,22 @@ Define a custom prefix for reproducible URIs.
 
 == Group Graphs
 
-__Group graphs__ provide simple means to describe groups or even nested graphs.
+
+__Group graphs__ provide a simple and visual way to cluster statements into logical groups or contexts.
+A __group graph__ begins with a header containing the group's name enclosed
+by `----` (at least four minus characters) and ends with a closing line of `----` (at least four minus characters).
+Any node that appears as a subject within these boundaries is automatically linked as being contained by the group.
+
+**Important Note on Nesting:**
+The `graffl` syntax does *not* allow you to physically nest one group graph block inside another.
+Trying to open a new group graph before closing the current one will result in a syntax error.
+
+Instead, to model hierarchical structures or logical nesting,
+you must define the group blocks **side by side**.
+You can then establish the hierarchy by simply using a child group's name as a subject within the
+parent group's block, or by linking them with explicit relations.
+
+=== Simple Groups
 
 A __group graph__ header is a node enclosed by  `----`  (at least four minus characters).
 It ends with again `----` (at least four minus characters).
