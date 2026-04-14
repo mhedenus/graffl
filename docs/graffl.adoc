@@ -3,7 +3,7 @@
 
 == Basic Structure
 
-*graffl* produces *RDF* statements consisting of subject, predicate and objects.
+*graffl* produces *RDF* (Resource Description Framework) statements consisting of subject, predicate and objects.
 
 The basic structure:
 
@@ -33,17 +33,54 @@ An object produces a literal unless:
 
 == Nodes
 
-`Alice`: A node with label `Alice`
-
-`"Mr. Bean"`: A node with label `Mr. Bean`
-
-`"""Mr. Bean"""`: A node with label `Mr. Bean`
-
-`(my node)`: A node reference, no explicit label
-
-`\<https://example.org>`: A node with specified URI, no explicit label
+|====
+| `Alice`                  | A node with label `Alice`
+| `"Mr. Bean"`             | A node with label `Mr. Bean`
+| `"""Mr. Bean"""`         | A node with label `Mr. Bean`
+| `(my node)`              | A __node reference__, no label
+| `\<https://example.org>` | A node with specified URI, no label
+|====
 
 If the label is a word without whitespace like "Alice", then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
+
+If a node is defined with label (e.g. `Alice`, `"Mr. Bean"`, `"""Mr. Bean"""`)
+*graffl* will produce a `rdfs:label` when it encounters the node for the first time as statement subject.
+
+For example the graph:
+
+-----
+Alice likes -> Bob
+-----
+
+produces RDF as *Turtle*:
+
+----
+@prefix ns1: <https://www.hedenus.de/graffl/43f4a396-37e2-11f1-bdfb-e08f4ccbe174/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ns1:Alice rdfs:label "Alice" ;
+    ns1:likes ns1:Bob .
+----
+
+If a node is defined without label as __node reference__ (e.g. `(my node)`) or URI `\<https://example.org>`
+or it only appears as statement object
+then no additional statement is produced.
+
+== Base URI Prefix
+
+The directive `@prefix` defines the base URI prefix.
+It is called "prefix" because the resulting URI is a simple concatenation of the prefix with the encoded node label:
+
+-----
+@prefix <http://example.org/ns#>
+
+"Mr. Bean"
+-----
+
+produces the URI `++<http://example.org/ns#Mr.%20Bean>++`.
+
+The default URI prefix is `++https://www.hedenus.de/graffl/++` plus a runtime UUID, i.e. every parser run will create new unique URIs for the nodes.
+Define a custom prefix for reproducible URIs.
 
 == Aliases
 
@@ -78,6 +115,63 @@ Here is a list of predefined aliases (see also the code of `src/graffl/config.py
 | `isDefinedBy`    | rdfs:isDefinedBy
 |===
 
+== Namespaces
+
+*graffl* supports __namespaces__.
+You can define a __namespace prefix__ using the assignment directive with an `=` sign at the beginning of your file:
+
+----
+@ foaf = <http://xmlns.com/foaf/0.1/>
+@ schema = <http://schema.org/>
+----
+
+Once a __namespace__ is defined, you can use it for classes, properties, or individuals:
+
+----
+@ foaf = <http://xmlns.com/foaf/0.1/>
+@ schema = <http://schema.org/>
+@ ex = <http://example.org/persons#>
+
+Alice : foaf:Person
+    schema:name "Alice Müller"
+    foaf:knows -> ex:Bob
+----
+
+== Identity vs. Names
+
+*graffl*'s default behavior of generating URIs from labels is perfect for quick sketches ("ABox") and ontologies ("TBox").
+Very often, especially in the ABox case, the final URI of an entity is not known from the beginning of the modeling process.
+You can either use __namespaces__ or you can use __aliases__ for specifying URIs ex post.
+
+For example, you start with the initial graph:
+
+-----
+Alice likes -> Bob
+-----
+
+Later, when you have identified the URIs you define them as __aliases__:
+
+-----
+@ Alice = urn:example.org:persons:12345
+@ Bob   = urn:example.org:persons:67890
+@ likes = http://purl.org/spar/cito/likes
+
+Alice likes -> Bob
+-----
+
+If you need to distinguish between two entities with the same name, use the __node reference__
+syntax (e.g. `(person001)`):
+
+----
+(person001)
+    label "Alice"
+
+(person002)
+    label "Alice"
+
+(person001) knows -> (person002)
+----
+
 == URI Properties
 
 Sometimes a predicate is considered a property but its value shall be an individual.
@@ -89,7 +183,7 @@ Then a predicate can be specified to be a __URI property__ by assigning it a `UR
 Alice state ACTIVE
 ----
 
-The produced RDF as __Turtle__:
+The produced RDF as *Turtle*:
 
 ----
 @prefix ns1: <https://www.hedenus.de/graffl/5e7a8688-3705-11f1-b85e-e08f4ccbe174/> .
@@ -107,24 +201,21 @@ Predefined _URI properties_ are (see also the code of `src/graffl/config.py`):
 
 == Datatypes
 
-**graffl** supports standard XML Schema (XSD) datatypes for literals.
-To specify a datatype, use the `@` symbol followed by the datatype name
-directly before the object value. This uses the exact same, elegant syntax as language tags.
+*graffl* supports datatypes for literals.
+To specify a datatype, use the `@` symbol followed by the datatype name directly before the object value.
+The common *XML Schema 1.1* datatypes are predefined (see also the code of `src/graffl/config.py`).
 
-The following XSD datatypes are predefined out of the box:
-`string`, `boolean`, `integer`, `decimal`, `float`, `double`, `dateTime`, `time`, `date`, and `anyURI`.
-
-For example:
+Example:
 
 ----
 Event
   name @en "Launch Party"
   startDate @dateTime "2023-11-01T12:00:00"
-  participantCount @integer "42"
-  isPublic @boolean "true"
+  participantCount @integer 42
+  isPublic @boolean true
 ----
 
-The produced RDF as __Turtle__:
+The produced RDF as *Turtle*:
 
 ----
 @prefix ns1: <https://www.hedenus.de/graffl/eec682c0-3747-11f1-9010-e08f4ccbe174/> .
@@ -137,17 +228,27 @@ ns1:Event rdfs:label "Event" ;
     ns1:participantCount 42 ;
     ns1:startDate "2023-11-01T12:00:00"^^xsd:dateTime .
 ----
+
+Note that every literal without a datatype is a plain literal.
+The syntax makes is easy for defining the datatype ex post.
+
+== Languages
+
+An object may be tagged with an ISO 639 language code. This will produce tagged RDF literals:
+
+-----
+(a) label @en Alice
+    label @tlh QelIS
+-----
+
 == Blank Nodes
 
 Objects may be __blank nodes__.
-They are surrounded by square brackets and look very much like __Turtle__:
+They are surrounded by square brackets and look very much like *Turtle*:
 
 -----
-Alice fullName [
-        firstName "Alice"
-        secondName "Jane"
-        lastName "Van Houten"
-    ]
+Alice fullName [ firstName "Alice"
+                 secondName "Jane" ]
 -----
 
 == Containers
@@ -160,22 +261,25 @@ A numbering `nnn.`, where nnn is any positive integer number, produces `rdf:_nnn
 (Tasks)
   1. Beginn
   2. "do something"
+  * Break
   99. Done
 ----
 
-The produced RDF as __Turtle__:
+The produced RDF as *Turtle*:
 
 ----
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 
-<https://www.hedenus.de/graffl/8e91d8f4-3707-11f1-bfb6-e08f4ccbe174/Tasks> rdf:_1 "Beginn" ;
+<https://www.hedenus.de/graffl/d406e486-37cd-11f1-a4c8-e08f4ccbe174/Tasks> rdf:_1 "Beginn" ;
     rdf:_2 "do something" ;
-    rdf:_99 "Done" .
+    rdf:_99 "Done" ;
+    rdf:li "Break" .
 ----
 
-== Lists (Collections)
+== Lists
 
-A list (i.e. a rdf:List) starts with `*(` and ends with `)`. The predicate type is applied to the list members.
+A list (i.e. a closed collection or `rdf:List`) starts with `*(` and ends with `)`.
+The predicate type is applied to the list members.
 For example:
 
 ----
@@ -190,57 +294,30 @@ Rainbow colors -> *( Red Green Blue )
 
 will regard the colors as nodes.
 
-=== OWL Modeling
+== OWL Modeling
 
-The *OWL* vocabulary is predefined as _URI properties_. This make writing an ontology simple:
+The *OWL* vocabulary is predefined as _URI properties_.
+This makes writing an ontology nice and simple:
 
 ----
 @prefix <http://example.org/pizza#>
 
-SalamiPizza
-    : Class
-    subClassOf [
-        : Class
+SalamiPizza : Class
+    subClassOf [ : Class
+        label "Pizza with Salami + Mozzarella"
         intersectionOf *(
             Pizza
-            [
-                : Restriction
+            [ : Restriction
                 onProperty hasTopping
                 someValuesFrom Salami
             ]
-            [
-                : Restriction
+            [ : Restriction
                 onProperty hasTopping
                 someValuesFrom Mozzarella
             ]
         )
     ]
 ----
-
-== Languages
-
-An object may be tagged with an ISO 639 language code:
-
------
-(a) label @en Alice
-    label @tlh QelIS
------
-
-== Base URI Prefix
-
-The directive `@prefix` defines the base URI prefix.
-It is called "prefix" because the resulting URI is a simple concatenation of the prefix with the encoded node label:
-
------
-@prefix <http://example.org/ns#>
-
-"Mr. Bean"
------
-
-produces the URI `++<http://example.org/ns#Mr.%20Bean>++`.
-
-The default URI prefix is `++https://www.hedenus.de/graffl/++` plus a runtime UUID, i.e. every parser run will create new unique URIs for the nodes.
-Define a custom prefix for reproducible URIs.
 
 == Group Graphs
 
@@ -254,14 +331,6 @@ Trying to open a new group graph before closing the current one will result in a
 
 Instead, to model hierarchical structures or logical nesting, you must define the group blocks **side by side**.
 You can then establish the hierarchy by simply using a child group's name as a subject within the parent group's block, or by linking them with explicit relations.
-
-=== Simple Groups
-
-A __group graph__ header is a node enclosed by  `----`  (at least four minus characters).
-It ends with again `----` (at least four minus characters).
-A node is contained by the __group graph__ if it appears as subject within its boundaries.
-__Group graphs__ may contain other __group graphs__.
-However, nested descriptions are not allowed; instead, they must be described side by side.
 
 === Simple Groups
 
@@ -295,7 +364,7 @@ Team-1 worksWith -> Team-2
 --------------------------------
 ----
 
-The produced RDF as __Turtle__:
+The produced RDF as *Turtle*:
 
 ----
 @prefix ns1: <https://www.hedenus.de/graffl/> .

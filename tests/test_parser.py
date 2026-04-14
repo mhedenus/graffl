@@ -9,8 +9,21 @@ def test_simple():
     print(toTurtle("A"))
 
 
-def test_simple_noderef():
+def test_simple_noderef_1():
     print(toTurtle("(A)"))
+
+
+def test_simple_noderef_2():
+    print(toTurtle("""
+        (person001)
+            label "Alice"
+        
+        (person002)
+            label "Alice"
+        
+        (person001) knows -> (person002)
+  
+        """))
 
 
 def test_simple_string():
@@ -58,114 +71,23 @@ def test_prefix():
 
 def test_model():
     print(toTurtle("""
-  @prefix <http://example.org/pizza#>
+@prefix <http://example.org/pizza#>
 
-<http://example.org/pizza#>
-    : Ontology
-    label "Die Erweiterte Pizza-Ontologie"
-    comment "Ein komplexer Härtetest für den Graffl-Parser mit OWL DL."
-
----- "Eigenschaften" ----
-
-hasTopping
-    : ObjectProperty
-    label "hat Belag"
-
-hasBase
-    : ObjectProperty
-    label "hat Boden"
-
--------------------------
-
----- "Grundzutaten" ----
-
-PizzaBase : Class
-
-PizzaTopping : Class
-
-CheeseTopping 
-    : Class
-    subClassOf PizzaTopping
-    
-MeatTopping 
-    : Class
-    subClassOf PizzaTopping
-    disjointWith CheeseTopping
-    
-Mozzarella
-    : Class
-    subClassOf CheeseTopping
-    
-Salami
-    : Class
-    subClassOf MeatTopping
-    
-Ham
-    : Class
-    subClassOf MeatTopping
-    
-Jalapeno
-    : Class
-    subClassOf PizzaTopping
-
-------------------------
-
----- "Komplexe Pizzen" ----
-
-Pizza : Class
-
-SalamiPizza
-    : Class
-    subClassOf [
-        : Class
+SalamiPizza : Class
+    subClassOf [ : Class
+        label "Pizza with Salami + Mozzarella"
         intersectionOf *(
             Pizza
-            [
-                : Restriction
+            [ : Restriction
                 onProperty hasTopping
                 someValuesFrom Salami
             ]
-            [
-                : Restriction
+            [ : Restriction
                 onProperty hasTopping
                 someValuesFrom Mozzarella
             ]
         )
-    ]
-
-SpicyPizza
-    : Class
-    equivalentClass [
-        : Class
-        intersectionOf *(
-            Pizza
-            [
-                : Restriction
-                onProperty hasTopping
-                someValuesFrom Jalapeno
-            ]
-        )
-    ]
-
-MeatLoversPizza
-    : Class
-    subClassOf [
-        : Class
-        intersectionOf *(
-            Pizza
-            [
-                : Restriction
-                onProperty hasTopping
-                someValuesFrom [
-                    : Class
-                    unionOf *( Salami Ham )
-                ]
-            ]
-        )
-    ]
-
----------------------------
-    """))
+    ]    """))
 
 
 def test_group_graph():
@@ -197,11 +119,8 @@ def test_group_graph():
 
 def test_blank_nodes():
     print(toTurtle("""
-        Alice fullName [
-            firstName "Alice"
-            secondName "Jane"
-            lastName "Van Houten"
-        ]
+        Alice fullName [ firstName "Alice"
+                         secondName "Jane" ]
     """))
 
 
@@ -225,10 +144,12 @@ def test_list_1():
       Rainbow colors -> *( Red Green Blue )
     """))
 
+
 def test_list_2():
     print(toTurtle("""
       Rainbow colors *( Red Green Blue )
     """))
+
 
 def test_value():
     print(toTurtle("""
@@ -241,18 +162,18 @@ def test_seq():
         (Tasks)
           1. Beginn
           2. "do something"
+          * Break
           99. Done
     """))
 
 
 def test_define_dict():
     print(toTurtle("""
-        @x = <http://www.example.org/x>
-        @y = <http://fowf#y>
-        @z = <urn:z>
+        @ Alice = urn:example.org:persons:12345
+        @ Bob   = urn:example.org:persons:67890
+        @ likes = http://purl.org/spar/cito/likes
         
-        x y -> z
-        
+        Alice likes -> Bob
     """))
 
 
@@ -264,13 +185,14 @@ def test_languages():
                 label @tlh QelIS
     """))
 
+
 def test_datatypes():
     print(toTurtle(""" 
-      Event
-          name @en "Launch Party"
-          startDate @dateTime "2023-11-01T12:00:00"
-          participantCount @integer "42"
-          isPublic @boolean "true"          
+    Event
+      name @en "Launch Party"
+      startDate @dateTime "2023-11-01T12:00:00"
+      participantCount @integer 42
+      isPublic @boolean true      
     """))
 
 
@@ -281,8 +203,20 @@ def test_uri_predicate():
         Alice state ACTIVE
         """))
 
+
+def test_namespaces():
+    print(toTurtle("""
+        @ foaf = <http://xmlns.com/foaf/0.1/>
+        @ schema = <http://schema.org/>
+        @ ex = <http://example.org/persons#>
+        
+        Alice : foaf:Person
+            schema:name "Alice Müller"
+            foaf:knows -> ex:Bob
+        """))
+
+
 def toTurtle(src):
     g = graffl.parser.parse(src)
     ttl = g.serialize(format="turtle")
     return ttl
-

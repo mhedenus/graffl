@@ -11,7 +11,7 @@ from lark import Lark, Token
 from lark.visitors import Interpreter
 from lark.exceptions import UnexpectedInput, LarkError
 
-from rdflib import URIRef, Literal, Graph, RDFS, RDF, BNode
+from rdflib import URIRef, Literal, Graph, RDFS, RDF, BNode, Namespace
 from rdflib.parser import Parser
 from rdflib.collection import Collection
 
@@ -27,15 +27,14 @@ class WordType(Enum):
     NODEREF = 2
     ML_STRING = 3
     STRING = 4
-
-
-class PredicateType(Enum):
-    PROPERTY = 1
-    RELATION = 2
+    QNAME = 5  # NEU: Eigener Typ für QNames
 
 
 class Word:
     def __init__(self, raw_value):
+        self.prefix = None
+        self.local_name = None
+
         if self._is_uri(raw_value):
             self.type = WordType.URI
             self.value = self._strip(raw_value)
@@ -48,6 +47,13 @@ class Word:
         elif self._is_string(raw_value):
             self.type = WordType.STRING
             self.value = self._strip(raw_value)
+        elif ":" in raw_value and raw_value != ":":
+            # NEU: Logik für QNames direkt im Word-Objekt gekapselt
+            self.type = WordType.QNAME
+            self.value = raw_value
+            parts = raw_value.split(":", 1)
+            self.prefix = parts[0]
+            self.local_name = parts[1]
         else:
             self.type = WordType.PLAIN
             self.value = raw_value
@@ -74,6 +80,11 @@ class Word:
         return f"{self.type}: {self.value}"
 
 
+class PredicateType(Enum):
+    PROPERTY = 1
+    RELATION = 2
+
+
 class GrafflASTInterpreter(Interpreter):
     def __init__(self, sink):
         self.sink = sink
@@ -84,6 +95,8 @@ class GrafflASTInterpreter(Interpreter):
         self.current_predicate = None
         self.current_predicate_type = None
         self.current_subject_stack = []
+
+        # Datentyp- und Sprach-Tags
         self.current_language = None
         self.current_datatype = None
 
@@ -95,12 +108,13 @@ class GrafflASTInterpreter(Interpreter):
         self.current_group_graph = None
         self.current_subjects_in_group_graph = None
 
+        # Konfiguration laden & UUID *pro Parse-Vorgang* generieren
         self.current_uri_prefix = f"{CONFIG.base_uri}{uuid.uuid1()}/"
 
         self.dictionary = dict(CONFIG.dictionary)
         self.uri_properties = {URIRef(i) for i in CONFIG.uri_properties}
 
-        # Datatypes
+        # XSD-Typen für Literale
         self.xsd_types = dict(getattr(CONFIG, 'xsd_types', {}))
 
         self.group_contains = URIRef(CONFIG.group_contains)
@@ -158,8 +172,20 @@ class GrafflASTInterpreter(Interpreter):
 
     def _make_uri(self, word):
         val = word.value
+
+        # 1. Bekannte vollständige Aliase
         if val in self.dictionary: return URIRef(self.dictionary[val])
-        if word.type == WordType.URI: return URIRef(val)
+
+        # 2. Explizite URIs (<...>) oder Knotenreferenzen ((...))
+        if word.type in (WordType.URI, WordType.NODEREF):
+            return URIRef(f"{self.current_uri_prefix}{quote(val, safe='/:=#')}")
+
+        # 3. QName Auflösung (sauber über word.type und word.prefix)
+        if word.type == WordType.QNAME:
+            if word.prefix in self.dictionary:
+                return URIRef(f"{self.dictionary[word.prefix]}{word.local_name}")
+
+        # 4. Fallback: Dynamischer Basis-Präfix
         return URIRef(f"{self.current_uri_prefix}{quote(val, safe='/:=#')}")
 
     def _make_uri_predicate(self, word):
@@ -179,13 +205,24 @@ class GrafflASTInterpreter(Interpreter):
 
     def directive(self, tree):
         if len(tree.children) >= 2:
-            t1 = Word(self._get_raw_value(tree.children[0]).lower())
+            raw_keyword = self._get_raw_value(tree.children[0])
+            t1 = Word(raw_keyword)
             t2 = Word(self._get_raw_value(tree.children[1]))
-            if t1.value == "prefix" and t2.type == WordType.URI:
+
+            # Globaler Prefix (@ prefix <URI>)
+            if t1.value.lower() == "prefix" and t2.type == WordType.URI:
                 self.current_uri_prefix = t2.value
-            elif len(tree.children) == 3 and tree.children[1] == "=":
-                self.dictionary[t1.value] = Word(self._get_raw_value(tree.children[2])).value
-            elif len(tree.children) == 3 and tree.children[1] == ":":
+
+            # Namespace / Alias Zuweisung (@ foaf = <URI>)
+            elif len(tree.children) == 3 and self._get_raw_value(tree.children[1]) == "=":
+                uri_val = Word(self._get_raw_value(tree.children[2])).value
+                self.dictionary[t1.value] = uri_val
+
+                # Wir machen rdflib den Namespace bekannt
+                self.sink.bind(t1.value, Namespace(uri_val))
+
+            # URI Property Zuweisung (@ state : URI)
+            elif len(tree.children) == 3 and self._get_raw_value(tree.children[1]) == ":":
                 if self._get_raw_value(tree.children[2]) == "URI":
                     self.uri_properties.add(self._make_uri(t1))
 
@@ -208,11 +245,12 @@ class GrafflASTInterpreter(Interpreter):
         self.current_predicate = self._make_uri_predicate(word)
         self.current_predicate_type = PredicateType.PROPERTY
 
+        # Reset der Tags
         self.current_language = None
         self.current_datatype = None
 
         if len(tree.children) == 2:
-            tag_value = tree.children[1].value[1:]  # Das '@' am Anfang abschneiden
+            tag_value = tree.children[1].value[1:]  # Das '@' entfernen
 
             if tag_value in self.xsd_types:
                 self.current_datatype = self.xsd_types[tag_value]
@@ -226,14 +264,19 @@ class GrafflASTInterpreter(Interpreter):
 
     def object(self, tree):
         word = Word(self._get_raw_value(tree))
+
         if self.current_predicate_type == PredicateType.PROPERTY:
-            if word.type == WordType.URI or (self.current_predicate in self.uri_properties):
+            # Sauberer Check auf QName mit vorhandenem Prefix
+            is_valid_qname = (word.type == WordType.QNAME and word.prefix in self.dictionary)
+
+            if word.type == WordType.URI or (self.current_predicate in self.uri_properties) or is_valid_qname:
                 obj = self._make_uri(word)
             else:
                 obj = Literal(word.value, lang=self.current_language, datatype=self.current_datatype)
         else:
             obj = self._make_uri(word)
 
+        # Reset nach Verarbeitung
         self.current_language = None
         self.current_datatype = None
 
@@ -277,6 +320,7 @@ class GrafflASTInterpreter(Interpreter):
         group_uri = self._make_uri(word)
         self.sink.add((group_uri, RDF.type, self.group_type))
         self._remember_subject(group_uri, word)
+
         with self.group_graph_context(group_uri):
             self.visit_children(tree)
 
