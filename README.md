@@ -25,9 +25,9 @@ written as Turtle:
 
 It also supports OWL modeling and nested graphs!
 
-See the `src/graffl/graffl.lark` file for the EBNF grammar.
-
 See the documentation `docs/graffl.adoc`.
+
+See the `src/graffl/graffl.lark` file for the EBNF grammar.
 
 The parser is implemented as an extension for __rdflib__: https://github.com/rdflib/rdflib
 
