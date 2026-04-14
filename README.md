@@ -1,9 +1,9 @@
 <div>
-  <img src="docs/graffl.png" alt="graffl Logo" width="400" />
+  <img src="https://raw.githubusercontent.com/mhedenus/graffl/main/docs/graffl.png" alt="graffl Logo" width="400" />
 </div>
 
 (pronounced g-raffl, but also derived from the Bavarian 
-word for "Graffl" for "stuff" or "junk")
+word "Graffl" meaning "stuff" or "junk")
 
 __graffl__ is a (still) experimental __RDF__ scratch pad file format.
 Its purpose is to write something down that is immediately
@@ -23,11 +23,12 @@ written as Turtle:
         ns1:likes ns1:Bob .
 
 
-It also supports nesting graphs, which is very useful for layouting.
+It also supports OWL modeling and nested graphs!
+
 See the `src/graffl/graffl.lark` file for the EBNF grammar.
 
-See the documentation `docs/graffl.adoc`!
+See the documentation `docs/graffl.adoc`.
 
-The parser is implemented as extension for __rdflib__: https://github.com/rdflib/rdflib
+The parser is implemented as an extension for __rdflib__: https://github.com/rdflib/rdflib
 
 The file format is used by __rdf2graphml__: https://github.com/mhedenus/rdf2graphml

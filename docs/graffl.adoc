@@ -85,7 +85,7 @@ Define a custom prefix for reproducible URIs.
 == Aliases
 
 Every word can be an __alias__ for a URI.
-For defining an alias in the script use an assginment `=` in a directive:
+For defining an alias in the script use an assignment `=` in a directive:
 
 ----
 @ x = <http://www.example.org/x>
@@ -230,7 +230,7 @@ ns1:Event rdfs:label "Event" ;
 ----
 
 Note that every literal without a datatype is a plain literal.
-The syntax makes is easy for defining the datatype ex post.
+The syntax makes it easy for defining the datatype ex post.
 
 == Languages
 
@@ -400,9 +400,9 @@ ns2:David rdfs:label "David" .
 === Hierarchical Modeling
 
 One important application of this feature is for __breaking down__ things into different levels of details.
-For example, imaging a battery holder which contains three batteries.
+For example, imagine a battery holder which contains three batteries.
 These batteries are all instances of the same class and have the same inner structure.
-The inners structure of a battery is in the is example modeled as connection points and electrochemistry:
+The inner structure of a battery is modeled as two connection points and electrochemistry:
 
 ----
 
