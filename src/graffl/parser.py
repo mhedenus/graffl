@@ -16,6 +16,7 @@ from rdflib.parser import Parser
 from rdflib.collection import Collection
 
 from .config import CONFIG
+from .profile_loader import apply_profile
 
 logger = logging.getLogger(__name__)
 GRAMMAR_FILE = os.path.join(os.path.dirname(__file__), 'graffl.lark')
@@ -86,8 +87,9 @@ class PredicateType(Enum):
 
 
 class GrafflASTInterpreter(Interpreter):
-    def __init__(self, sink):
+    def __init__(self, sink, base_path=None):
         self.sink = sink
+        self.base_path = base_path
         self.subjects_seen = set()
 
         # Zustandsvariablen
@@ -208,6 +210,10 @@ class GrafflASTInterpreter(Interpreter):
             raw_keyword = self._get_raw_value(tree.children[0])
             t1 = Word(raw_keyword)
             t2 = Word(self._get_raw_value(tree.children[1]))
+
+            # --- Load Profile ---
+            if t1.value.lower() == "use":
+                apply_profile(t2.value, self)
 
             # Globaler Prefix (@ prefix <URI>)
             if t1.value.lower() == "prefix" and t2.type == WordType.URI:
@@ -333,17 +339,22 @@ class GrafflParser(Parser):
         self.lark_parser = Lark(grammar_text, start='start', parser='lalr')
 
     def parse(self, source, sink, **kwargs):
+        base_path = kwargs.get('base_path', None)
+
         content = source.getCharacterStream().read()
         tree = self.lark_parser.parse(content)
-        GrafflASTInterpreter(sink).visit(tree)
+        GrafflASTInterpreter(sink, base_path).visit(tree)
 
 
 def parse(input, graph=None):
+    base_path = input.parent if isinstance(input, Path) else None
     data = input.read_text(encoding='utf-8') if isinstance(input, Path) else input
+
+
     g = graph if graph is not None else Graph()
     if not data: return g
     try:
-        g.parse(data=data, format="graffl", plugin_parsers={"graffl": GrafflParser})
+        g.parse(data=data, format="graffl", base_path=base_path)
         return g
     except UnexpectedInput as e:
         raise ValueError(f"Syntax error (Line {e.line}, Col {e.column}):\n{e.get_context(data)}") from None

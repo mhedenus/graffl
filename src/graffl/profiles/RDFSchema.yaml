@@ -1,0 +1,19 @@
+dictionary:
+  "Class": "http://www.w3.org/2000/01/rdf-schema#Class"
+  "Datatype": "http://www.w3.org/2000/01/rdf-schema#Datatype"
+  "subClassOf": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+  "subPropertyOf": "http://www.w3.org/2000/01/rdf-schema#subPropertyOf"
+  "seeAlso": "http://www.w3.org/2000/01/rdf-schema#seeAlso"
+  "isDefinedBy": "http://www.w3.org/2000/01/rdf-schema#isDefinedBy"
+  "domain": "http://www.w3.org/2000/01/rdf-schema#domain"
+  "range": "http://www.w3.org/2000/01/rdf-schema#range"
+  "Resource": "http://www.w3.org/2000/01/rdf-schema#Resource"
+  "Literal": "http://www.w3.org/2000/01/rdf-schema#Literal"
+
+uri_properties:
+  - "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+  - "http://www.w3.org/2000/01/rdf-schema#subPropertyOf"
+  - "http://www.w3.org/2000/01/rdf-schema#domain"
+  - "http://www.w3.org/2000/01/rdf-schema#range"
+  - "http://www.w3.org/2000/01/rdf-schema#seeAlso"
+  - "http://www.w3.org/2000/01/rdf-schema#isDefinedBy"

@@ -1,5 +1,10 @@
 import graffl.parser
+import logging
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(levelname)s: %(message)s"
+)
 
 def test_empty():
     print(toTurtle(""))
@@ -71,6 +76,8 @@ def test_prefix():
 
 def test_model():
     print(toTurtle("""
+@use RDFSchema
+@use OWL
 @prefix <http://example.org/pizza#>
 
 SalamiPizza : Class

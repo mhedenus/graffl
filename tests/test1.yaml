@@ -1,0 +1,7 @@
+dictionary:
+  Alice: "mailto:alice@example.org"
+  Bob: "http://example.org/~bob"
+  likes: "http://purl.org/spar/cito/likes"
+
+uri_properties:
+  - "http://purl.org/spar/cito/likes"

@@ -100,19 +100,13 @@ Here is a list of predefined aliases (see also the code of `src/graffl/config.py
 |===
 | `:`, `type` | rdf:type
 | `=` , `value`    | rdf:value
-| `Property`       | rdf:Property
-| `Datatype`       | rdf:Datatype
 | `Alt`            | rdf:Alt
 | `Bag`            | rdf:Bag
 | `Seq`            | rdf:Seq
 | `*`              | rdf:li
-| `Class`          | rdfs:Class
 | `label`          | rdfs:label
 | `;`, `comment`   | rdfs:comment
-| `subClassOf`     | rdfs:subClassOf
-| `subPropertyOf`  | rdfs:subPropertyOf
 | `seeAlso`        | rdfs:seeAlso
-| `isDefinedBy`    | rdfs:isDefinedBy
 |===
 
 == Namespaces
@@ -196,8 +190,6 @@ ns1:Alice rdfs:label "Alice" ;
 Predefined _URI properties_ are (see also the code of `src/graffl/config.py`):
 
 * `rdf:type`
-* `rdfs:subClassOf`
-* all *OWL* properties
 
 == Datatypes
 
@@ -209,7 +201,6 @@ Example:
 
 ----
 Event
-  name @en "Launch Party"
   startDate @dateTime "2023-11-01T12:00:00"
   participantCount @integer 42
   isPublic @boolean true
@@ -224,7 +215,6 @@ The produced RDF as *Turtle*:
 
 ns1:Event rdfs:label "Event" ;
     ns1:isPublic true ;
-    ns1:name "Launch Party"@en ;
     ns1:participantCount 42 ;
     ns1:startDate "2023-11-01T12:00:00"^^xsd:dateTime .
 ----
@@ -294,12 +284,50 @@ Rainbow colors -> *( Red Green Blue )
 
 will regard the colors as nodes.
 
-== OWL Modeling
+== Profiles
 
-The *OWL* vocabulary is predefined as _URI properties_.
+*graffl* can be customized with __profiles__.
+A __profile__ is a YAML configuration file.
+For example, consider the following *graffl* code:
+
+----
+@ use test1
+Alice likes Bob
+----
+
+and the __profile__ `test1.yaml`:
+
+----
+dictionary:
+  Alice: "mailto:alice@example.org"
+  Bob: "http://example.org/~bob"
+  likes: "http://purl.org/spar/cito/likes"
+
+uri_properties:
+  - "http://purl.org/spar/cito/likes"
+----
+
+then the produced RDF as *Turtle* is:
+
+----
+@prefix ns1: <http://purl.org/spar/cito/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<mailto:alice@example.org> rdfs:label "Alice" ;
+    ns1:likes <http://example.org/~bob> .
+----
+
+You can use more than one __profile__, they are loaded in the given
+order.
+
+== Modeling with RDFSchema and OWL
+
+There are predfined __profiles__ for *RDFSchema* and *OWL*.
 This makes writing an ontology nice and simple:
 
 ----
+@use RDFSchema
+@use OWL
 @prefix <http://example.org/pizza#>
 
 SalamiPizza : Class
