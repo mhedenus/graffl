@@ -95,7 +95,8 @@ For defining an alias in the script use an assignment `=` in a directive:
 x y z
 ----
 
-Here is a list of predefined aliases (see also the code of `src/graffl/config.py`):
+The set of __aliases__ is called __dictionary__.
+Here is a list of predefined aliases or default dictionary (see also the code of `src/graffl/config.py`):
 
 |===
 | `:`, `type` | rdf:type
@@ -224,7 +225,8 @@ The syntax makes it easy for defining the datatype ex post.
 
 == Languages
 
-An object may be tagged with an ISO 639 language code. This will produce tagged RDF literals:
+An object may be tagged with an ISO 639 language code.
+This will produce tagged RDF literals:
 
 -----
 (a) label @en Alice
@@ -288,6 +290,8 @@ will regard the colors as nodes.
 
 *graffl* can be customized with __profiles__.
 A __profile__ is a YAML configuration file.
+You can use more than one __profile__, they are loaded in the specified order.
+
 For example, consider the following *graffl* code:
 
 ----
@@ -316,9 +320,6 @@ then the produced RDF as *Turtle* is:
 <mailto:alice@example.org> rdfs:label "Alice" ;
     ns1:likes <http://example.org/~bob> .
 ----
-
-You can use more than one __profile__, they are loaded in the given
-order.
 
 == Modeling with RDFSchema and OWL
 

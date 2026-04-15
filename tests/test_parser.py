@@ -76,9 +76,9 @@ def test_prefix():
 
 def test_model():
     print(toTurtle("""
+@prefix <http://example.org/pizza#>
 @use RDFSchema
 @use OWL
-@prefix <http://example.org/pizza#>
 
 SalamiPizza : Class
     subClassOf [ : Class
