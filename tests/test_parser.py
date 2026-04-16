@@ -100,22 +100,25 @@ SalamiPizza : Class
 def test_model_2():
     print(toTurtle("""
 @ prefix <http://example.org/ns#>
+@ my = <http://example.org/ns#>
 @ use RDFSchema
 @ use OWL
 @ use SHACL
 
 MyClass : Class
+    subClassOf [
+        label "status ACTIVE"
+         : Restriction
+        onProperty status
+        owl:hasValue "ACTIVE"
+        ]
 
-MyRestriction : Restriction
-    onProperty status
-    owl:hasValue "ACTIVE"
-
-MyShape : NodeShape
+"status ACTIVE" : NodeShape
     targetClass MyClass
     property [ : PropertyShape
         path status
         sh:hasValue "ACTIVE"
-    ] 
+    ]
      """))
 
 
