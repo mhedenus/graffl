@@ -97,6 +97,29 @@ SalamiPizza : Class
     ]    """))
 
 
+def test_model_2():
+    print(toTurtle("""
+@ prefix <http://example.org/ns#>
+@ use RDFSchema
+@ use OWL
+@ use SHACL
+
+MyClass : Class
+
+MyRestriction : Restriction
+    onProperty status
+    owl:hasValue "ACTIVE"
+
+MyShape : NodeShape
+    targetClass MyClass
+    property [ : PropertyShape
+        path status
+        sh:hasValue "ACTIVE"
+    ] 
+     """))
+
+
+
 def test_group_graph():
     print(toTurtle("""
         
@@ -213,13 +236,11 @@ def test_uri_predicate():
 
 def test_namespaces():
     print(toTurtle("""
-        @ foaf = <http://xmlns.com/foaf/0.1/>
-        @ schema = <http://schema.org/>
-        @ ex = <http://example.org/persons#>
-        
-        Alice : foaf:Person
-            schema:name "Alice Müller"
-            foaf:knows -> ex:Bob
+@ ex = <http://example.org/persons#>
+
+Alice : foaf:Person
+    schema:name "Alice Müller"
+    foaf:knows -> ex:Bob
         """))
 
 

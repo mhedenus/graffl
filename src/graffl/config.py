@@ -1,6 +1,7 @@
 import logging
 
-from rdflib.namespace import XSD
+from rdflib import OWL
+from rdflib.namespace import RDF, RDFS, XSD, FOAF, SKOS, DCTERMS
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +11,18 @@ class GrafflConfig:
         self.base_uri = "https://www.hedenus.de/graffl/"
 
         self.dictionary = {
+            # --- Standard Namespace Prefixes ---
+            "rdf": str(RDF),
+            "rdfs": str(RDFS),
+            "xsd": str(XSD),
+            "owl": str(OWL),
+            "sh": "http://www.w3.org/ns/shacl#",
+            "foaf": str(FOAF),
+            "dc": "http://purl.org/dc/elements/1.1/",
+            "dcterms": str(DCTERMS),
+            "skos": str(SKOS),
+            "schema": "https://schema.org/",
+
             # --- RDF Core ---
             ":": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
             "type": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",

@@ -1,0 +1,68 @@
+dictionary:
+  # Core Classes
+  "NodeShape": "http://www.w3.org/ns/shacl#NodeShape"
+  "PropertyShape": "http://www.w3.org/ns/shacl#PropertyShape"
+
+  # Targets
+  "targetClass": "http://www.w3.org/ns/shacl#targetClass"
+  "targetNode": "http://www.w3.org/ns/shacl#targetNode"
+  "targetSubjectsOf": "http://www.w3.org/ns/shacl#targetSubjectsOf"
+  "targetObjectsOf": "http://www.w3.org/ns/shacl#targetObjectsOf"
+
+  # Core Properties
+  "property": "http://www.w3.org/ns/shacl#property"
+  "path": "http://www.w3.org/ns/shacl#path"
+  "message": "http://www.w3.org/ns/shacl#message"
+  "severity": "http://www.w3.org/ns/shacl#severity"
+  "name": "http://www.w3.org/ns/shacl#name"
+  "description": "http://www.w3.org/ns/shacl#description"
+
+  # Value Type Constraints
+  "class": "http://www.w3.org/ns/shacl#class"
+  "datatype": "http://www.w3.org/ns/shacl#datatype"
+  "nodeKind": "http://www.w3.org/ns/shacl#nodeKind"
+
+  # Cardinality & Values
+  "minCount": "http://www.w3.org/ns/shacl#minCount"
+  "maxCount": "http://www.w3.org/ns/shacl#maxCount"
+  "hasValue": "http://www.w3.org/ns/shacl#hasValue"
+  "in": "http://www.w3.org/ns/shacl#in"
+
+  # String / Number Constraints
+  "pattern": "http://www.w3.org/ns/shacl#pattern"
+  "minLength": "http://www.w3.org/ns/shacl#minLength"
+  "maxLength": "http://www.w3.org/ns/shacl#maxLength"
+  "minInclusive": "http://www.w3.org/ns/shacl#minInclusive"
+  "maxInclusive": "http://www.w3.org/ns/shacl#maxInclusive"
+
+  # Logical Operators
+  "or": "http://www.w3.org/ns/shacl#or"
+  "and": "http://www.w3.org/ns/shacl#and"
+  "xone": "http://www.w3.org/ns/shacl#xone"
+  "not": "http://www.w3.org/ns/shacl#not"
+
+  # SHACL Constants (NodeKinds & Severities)
+  "IRI": "http://www.w3.org/ns/shacl#IRI"
+  "BlankNode": "http://www.w3.org/ns/shacl#BlankNode"
+  "Literal": "http://www.w3.org/ns/shacl#Literal"
+  "Violation": "http://www.w3.org/ns/shacl#Violation"
+  "Warning": "http://www.w3.org/ns/shacl#Warning"
+  "Info": "http://www.w3.org/ns/shacl#Info"
+
+# Properties that expect URIs or Blank Nodes as objects (NOT literals)
+uri_properties:
+  - "http://www.w3.org/ns/shacl#targetClass"
+  - "http://www.w3.org/ns/shacl#targetNode"
+  - "http://www.w3.org/ns/shacl#targetSubjectsOf"
+  - "http://www.w3.org/ns/shacl#targetObjectsOf"
+  - "http://www.w3.org/ns/shacl#property"
+  - "http://www.w3.org/ns/shacl#path"
+  - "http://www.w3.org/ns/shacl#class"
+  - "http://www.w3.org/ns/shacl#datatype"
+  - "http://www.w3.org/ns/shacl#nodeKind"
+  - "http://www.w3.org/ns/shacl#severity"
+  - "http://www.w3.org/ns/shacl#node"
+  - "http://www.w3.org/ns/shacl#or"
+  - "http://www.w3.org/ns/shacl#and"
+  - "http://www.w3.org/ns/shacl#xone"
+  - "http://www.w3.org/ns/shacl#not"

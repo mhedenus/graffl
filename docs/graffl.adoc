@@ -33,7 +33,9 @@ An object produces a literal unless:
 
 == Nodes
 
+[cols="1,3", options="header"]
 |====
+| Syntax | Meaning
 | `Alice`                  | A node with label `Alice`
 | `"Mr. Bean"`             | A node with label `Mr. Bean`
 | `"""Mr. Bean"""`         | A node with label `Mr. Bean`
@@ -98,8 +100,10 @@ x y z
 The set of __aliases__ is called __dictionary__.
 Here is a list of predefined aliases or default dictionary (see also the code of `src/graffl/config.py`):
 
+[cols="1,3", options="header"]
 |===
-| `:`, `type` | rdf:type
+|Alias             | URI
+| `:`, `type`      | rdf:type
 | `=` , `value`    | rdf:value
 | `Alt`            | rdf:Alt
 | `Bag`            | rdf:Bag
@@ -116,21 +120,35 @@ Here is a list of predefined aliases or default dictionary (see also the code of
 You can define a __namespace prefix__ using the assignment directive with an `=` sign at the beginning of your file:
 
 ----
-@ foaf = <http://xmlns.com/foaf/0.1/>
-@ schema = <http://schema.org/>
+@ ex = <http://example.org/persons#>
 ----
 
 Once a __namespace__ is defined, you can use it for classes, properties, or individuals:
 
 ----
-@ foaf = <http://xmlns.com/foaf/0.1/>
-@ schema = <http://schema.org/>
 @ ex = <http://example.org/persons#>
 
 Alice : foaf:Person
     schema:name "Alice Müller"
     foaf:knows -> ex:Bob
 ----
+
+The following prefixes are predefined (see also the code of `src/graffl/config.py`):
+
+[cols="1,3", options="header"]
+|===
+| Prefix | Namespace URI
+| `dc`      | `++<http://purl.org/dc/elements/1.1/>++`
+| `dcterms` | `++<http://purl.org/dc/terms/>++`
+| `foaf`    | `++<http://xmlns.com/foaf/0.1/>++`
+| `owl`     | `++<http://www.w3.org/2002/07/owl#>++`
+| `rdf`     | `++<http://www.w3.org/1999/02/22-rdf-syntax-ns#>++`
+| `rdfs`    | `++<http://www.w3.org/2000/01/rdf-schema#>++`
+| `schema`  | `++<http://schema.org/>++`
+| `sh`      | `++<http://www.w3.org/ns/shacl#>++`
+| `skos`    | `++<http://www.w3.org/2004/02/skos/core#>++`
+| `xsd`     | `++<http://www.w3.org/2001/XMLSchema#>++`
+|===
 
 == Identity vs. Names
 
@@ -321,9 +339,9 @@ then the produced RDF as *Turtle* is:
     ns1:likes <http://example.org/~bob> .
 ----
 
-== Modeling with RDFSchema and OWL
+== Modeling with RDFSchema, OWL and SHACL
 
-There are predfined __profiles__ for *RDFSchema* and *OWL*.
+There are predfined __profiles__ for *RDFSchema*,  *OWL* and *SHACL*.
 This makes writing an ontology nice and simple:
 
 ----
@@ -345,6 +363,29 @@ SalamiPizza : Class
                 someValuesFrom Mozzarella
             ]
         )
+    ]
+----
+
+If you use *SHACL* as well, there are naming conflicts, especially for `hasValue`. In that case
+you can disambiguate with namespaces:
+
+----
+@ prefix <http://example.org/ns#>
+@ use RDFSchema
+@ use OWL
+@ use SHACL
+
+MyClass : Class
+
+MyRestriction : Restriction
+    onProperty status
+    owl:hasValue "ACTIVE"
+
+MyShape : NodeShape
+    targetClass MyClass
+    property [ : PropertyShape
+        path status
+        sh:hasValue "ACTIVE"
     ]
 ----
 
