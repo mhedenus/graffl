@@ -1,10 +1,12 @@
-import graffl.parser
 import logging
+
+import graffl.parser
 
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(levelname)s: %(message)s"
 )
+
 
 def test_empty():
     print(toTurtle(""))
@@ -106,9 +108,7 @@ def test_model_2():
 @ use SHACL
 
 MyClass : Class
-    subClassOf [
-        label "status ACTIVE"
-         : Restriction
+    subClassOf [ : Restriction
         onProperty status
         owl:hasValue "ACTIVE"
         ]
@@ -120,7 +120,6 @@ MyClass : Class
         sh:hasValue "ACTIVE"
     ]
      """))
-
 
 
 def test_group_graph():
@@ -251,3 +250,16 @@ def toTurtle(src):
     g = graffl.parser.parse(src)
     ttl = g.serialize(format="turtle")
     return ttl
+
+
+def test_list_group():
+    print(toTurtle("""
+
+---- Group ----
+
+List items -> *( item1 item2 item3 item4 )
+
+---------------
+
+
+     """))

@@ -315,7 +315,22 @@ class GrafflASTInterpreter(Interpreter):
         self.current_list_items_stack.append([])
         self.visit_children(tree)
         items = self.current_list_items_stack.pop()
+
+        # rdflib die Collection (und die internen Blank Nodes) bauen lassen
         Collection(self.sink, head, items)
+
+        # BUGFIX: Alle generierten Blank Nodes der Liste dem Group Graph hinzufügen
+        if self.current_group_graph:
+            current_node = head
+            # Traversiere die Kette, bis das Ende (rdf:nil) erreicht ist
+            while current_node and current_node != RDF.nil:
+                # Prüfen und Hinzufügen zum Group Graph
+                if current_node not in self.current_subjects_in_group_graph:
+                    self.sink.add((self.current_group_graph, self.group_contains, current_node))
+                    self.current_subjects_in_group_graph.add(current_node)
+
+                # Zum nächsten Blank Node in der rdf:rest Kette springen
+                current_node = self.sink.value(current_node, RDF.rest)
 
     def list_item(self, tree):
         with self.list_item_context():

@@ -32,7 +32,7 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-"*" = ["*.lark", "*.json"]
+"*" = ["*.lark", "*.json", "*.yaml"]
 
 [project.scripts]
 graffl = "graffl.cli:main"
