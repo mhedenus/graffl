@@ -380,7 +380,7 @@ If you use *SHACL* as well, there are naming conflicts, especially for `hasValue
 you can disambiguate with namespaces:
 
 ----
-@ prefix http://example.org/ns#
+@ prefix <http://example.org/ns#>
 @ use RDFSchema
 @ use OWL
 @ use SHACL
