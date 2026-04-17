@@ -87,7 +87,7 @@ Define a custom prefix for reproducible URIs.
 == Aliases
 
 Every word can be an __alias__ for a URI.
-For defining an alias in the script use an assignment `=` in a directive:
+For defining an alias in the script use an assignment `=` followed by a URI in a directive:
 
 ----
 @ x = <http://www.example.org/x>
@@ -117,7 +117,8 @@ Here is a list of predefined aliases or default dictionary (see also the code of
 == Namespaces
 
 *graffl* supports __namespaces__.
-You can define a __namespace prefix__ using the assignment directive with an `=` sign at the beginning of your file:
+You can define a __namespace prefix__ using the assignment directive with an `=` sign followed by a URI
+at the beginning of your file:
 
 ----
 @ ex = <http://example.org/persons#>
@@ -165,9 +166,9 @@ Alice likes -> Bob
 Later, when you have identified the URIs you define them as __aliases__:
 
 -----
-@ Alice = urn:example.org:persons:12345
-@ Bob   = urn:example.org:persons:67890
-@ likes = http://purl.org/spar/cito/likes
+@ Alice = <urn:example.org:persons:12345>
+@ Bob   = <urn:example.org:persons:67890>
+@ likes = <http://purl.org/spar/cito/likes>
 
 Alice likes -> Bob
 -----
@@ -370,21 +371,18 @@ If you use *SHACL* as well, there are naming conflicts, especially for `hasValue
 you can disambiguate with namespaces:
 
 ----
-@ prefix <http://example.org/ns#>
-@ my = <http://example.org/ns#>
+@ prefix http://example.org/ns#
 @ use RDFSchema
 @ use OWL
 @ use SHACL
 
 MyClass : Class
-    subClassOf [
-        label "status ACTIVE"
-         : Restriction
+    subClassOf [ : Restriction
         onProperty status
         owl:hasValue "ACTIVE"
         ]
 
-"status ACTIVE" : NodeShape
+(MyClass.status = ACTIVE) : NodeShape
     targetClass MyClass
     property [ : PropertyShape
         path status

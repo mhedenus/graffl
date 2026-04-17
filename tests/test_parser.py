@@ -71,14 +71,17 @@ def test_noderef_as_value():
 
 def test_prefix():
     print(toTurtle("""
-    @prefix <http://example.org/ns#>
-        "Mr. Bean"
+    @prefix http://example.org/ns#
+    
+    "Mr. Bean"
+    
+    <http://my-uri#1> rdfs:label "my URI"
     """))
 
 
 def test_model():
     print(toTurtle("""
-@prefix <http://example.org/pizza#>
+@prefix http://example.org/pizza#
 @use RDFSchema
 @use OWL
 
@@ -101,8 +104,7 @@ SalamiPizza : Class
 
 def test_model_2():
     print(toTurtle("""
-@ prefix <http://example.org/ns#>
-@ my = <http://example.org/ns#>
+@ prefix http://example.org/ns#
 @ use RDFSchema
 @ use OWL
 @ use SHACL
@@ -113,7 +115,7 @@ MyClass : Class
         owl:hasValue "ACTIVE"
         ]
 
-"status ACTIVE" : NodeShape
+(MyClass.status = ACTIVE) : NodeShape
     targetClass MyClass
     property [ : PropertyShape
         path status
@@ -201,9 +203,9 @@ def test_seq():
 
 def test_define_dict():
     print(toTurtle("""
-        @ Alice = urn:example.org:persons:12345
-        @ Bob   = urn:example.org:persons:67890
-        @ likes = http://purl.org/spar/cito/likes
+        @ Alice = <urn:example.org:persons:12345>
+        @ Bob   = <urn:example.org:persons:67890>
+        @ likes = <http://purl.org/spar/cito/likes>
         
         Alice likes -> Bob
     """))

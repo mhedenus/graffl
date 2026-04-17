@@ -2,18 +2,17 @@ import logging
 import os
 import re
 import uuid
+from contextlib import contextmanager
 from enum import Enum
 from pathlib import Path
 from urllib.parse import quote
-from contextlib import contextmanager
 
 from lark import Lark, Token
-from lark.visitors import Interpreter
 from lark.exceptions import UnexpectedInput, LarkError
-
+from lark.visitors import Interpreter
 from rdflib import URIRef, Literal, Graph, RDFS, RDF, BNode, Namespace
-from rdflib.parser import Parser
 from rdflib.collection import Collection
+from rdflib.parser import Parser
 
 from .config import CONFIG
 from .profile_loader import apply_profile
@@ -49,7 +48,6 @@ class Word:
             self.type = WordType.STRING
             self.value = self._strip(raw_value)
         elif ":" in raw_value and raw_value != ":":
-            # NEU: Logik für QNames direkt im Word-Objekt gekapselt
             self.type = WordType.QNAME
             self.value = raw_value
             parts = raw_value.split(":", 1)
@@ -172,33 +170,30 @@ class GrafflASTInterpreter(Interpreter):
         token = node.children[0]
         return token.value if isinstance(token, Token) else str(token)
 
-    def _make_uri(self, word):
+    def _create_URI(self, word):
         val = word.value
 
-        # 1. Bekannte vollständige Aliase
-        if val in self.dictionary: return URIRef(self.dictionary[val])
+        if val in self.dictionary:
+            return URIRef(self.dictionary[val])
 
-        # 2. Explizite URIs (<...>) oder Knotenreferenzen ((...))
-        if word.type in (WordType.URI, WordType.NODEREF):
-            return URIRef(f"{self.current_uri_prefix}{quote(val, safe='/:=#')}")
+        if word.type == WordType.URI:
+            return URIRef(val)
 
-        # 3. QName Auflösung (sauber über word.type und word.prefix)
         if word.type == WordType.QNAME:
             if word.prefix in self.dictionary:
                 return URIRef(f"{self.dictionary[word.prefix]}{word.local_name}")
 
-        # 4. Fallback: Dynamischer Basis-Präfix
         return URIRef(f"{self.current_uri_prefix}{quote(val, safe='/:=#')}")
 
-    def _make_uri_predicate(self, word):
+    def _create_URI_predicate(self, word):
         if re.match(r"\d+\.", word.value):
             return URIRef(f"http://www.w3.org/1999/02/22-rdf-syntax-ns#_{word.value[:-1]}")
-        return self._make_uri(word)
+        return self._create_URI(word)
 
     def _remember_subject(self, subject, word):
         if subject not in self.subjects_seen:
             if word.type not in (WordType.URI, WordType.NODEREF):
-                self.sink.add((subject, RDFS.label, Literal(word.value)))
+                self.emit_statement((subject, RDFS.label, Literal(word.value)))
             self.subjects_seen.add(subject)
 
     # ==========================================
@@ -207,30 +202,27 @@ class GrafflASTInterpreter(Interpreter):
 
     def directive(self, tree):
         if len(tree.children) >= 2:
-            raw_keyword = self._get_raw_value(tree.children[0])
-            t1 = Word(raw_keyword)
-            t2 = Word(self._get_raw_value(tree.children[1]))
+            t0 = Word(self._get_raw_value(tree.children[0]))
+            t1 = Word(self._get_raw_value(tree.children[1]))
 
             # --- Load Profile ---
-            if t1.value.lower() == "use":
-                apply_profile(t2.value, self)
+            if t0.value.lower() == "use":
+                apply_profile(t1.value, self)
 
             # Globaler Prefix (@ prefix <URI>)
-            if t1.value.lower() == "prefix" and t2.type == WordType.URI:
-                self.current_uri_prefix = t2.value
+            if t0.value.lower() == "prefix":
+                self.current_uri_prefix = t1.value
 
-            # Namespace / Alias Zuweisung (@ foaf = <URI>)
-            elif len(tree.children) == 3 and self._get_raw_value(tree.children[1]) == "=":
-                uri_val = Word(self._get_raw_value(tree.children[2])).value
-                self.dictionary[t1.value] = uri_val
+            elif len(tree.children) == 3:
+                t2 = Word(self._get_raw_value(tree.children[2]))
 
-                # Wir machen rdflib den Namespace bekannt
-                self.sink.bind(t1.value, Namespace(uri_val))
+                # Namespace / Alias Zuweisung (@ foaf = <URI>)
+                if t1.value == "=" and t2.type == WordType.URI :
+                    self.dictionary[t0.value] = t2.value # do not bind it in the sink
 
-            # URI Property Zuweisung (@ state : URI)
-            elif len(tree.children) == 3 and self._get_raw_value(tree.children[1]) == ":":
-                if self._get_raw_value(tree.children[2]) == "URI":
-                    self.uri_properties.add(self._make_uri(t1))
+                # uri property
+                elif t1.value == ":" and t2.value == "URI":
+                    self.uri_properties.add(self._create_URI(t0))
 
     def block(self, tree):
         self.current_subject = None
@@ -238,17 +230,17 @@ class GrafflASTInterpreter(Interpreter):
 
     def subject(self, tree):
         word = Word(self._get_raw_value(tree))
-        subject = self._make_uri(word)
+        subject = self._create_URI(word)
         self._remember_subject(subject, word)
         self.current_subject_stack = [subject]
         self.current_subject = subject
         if self.current_group_graph and subject not in self.current_subjects_in_group_graph:
-            self.sink.add((self.current_group_graph, self.group_contains, subject))
+            self.emit_statement((self.current_group_graph, self.group_contains, subject))
             self.current_subjects_in_group_graph.add(subject)
 
     def predicate_property(self, tree):
         word = Word(self._get_raw_value(tree.children[0]))
-        self.current_predicate = self._make_uri_predicate(word)
+        self.current_predicate = self._create_URI_predicate(word)
         self.current_predicate_type = PredicateType.PROPERTY
 
         # Reset der Tags
@@ -265,7 +257,7 @@ class GrafflASTInterpreter(Interpreter):
 
     def predicate_relation(self, tree):
         word = Word(self._get_raw_value(tree.children[0]))
-        self.current_predicate = self._make_uri_predicate(word)
+        self.current_predicate = self._create_URI_predicate(word)
         self.current_predicate_type = PredicateType.RELATION
 
     def object(self, tree):
@@ -275,12 +267,12 @@ class GrafflASTInterpreter(Interpreter):
             # Sauberer Check auf QName mit vorhandenem Prefix
             is_valid_qname = (word.type == WordType.QNAME and word.prefix in self.dictionary)
 
-            if word.type == WordType.URI or (self.current_predicate in self.uri_properties) or is_valid_qname:
-                obj = self._make_uri(word)
+            if is_valid_qname or word.type == WordType.URI or (self.current_predicate in self.uri_properties):
+                obj = self._create_URI(word)
             else:
                 obj = Literal(word.value, lang=self.current_language, datatype=self.current_datatype)
         else:
-            obj = self._make_uri(word)
+            obj = self._create_URI(word)
 
         # Reset nach Verarbeitung
         self.current_language = None
@@ -289,17 +281,17 @@ class GrafflASTInterpreter(Interpreter):
         if self.route_to_list:
             self.current_list_items_stack[-1].append(obj)
         elif self.current_subject and self.current_predicate:
-            self.sink.add((self.current_subject, self.current_predicate, obj))
+            self.emit_statement((self.current_subject, self.current_predicate, obj))
 
     def blank_node(self, tree):
         bnode = BNode()
         if self.route_to_list:
             self.current_list_items_stack[-1].append(bnode)
         elif self.current_subject and self.current_predicate:
-            self.sink.add((self.current_subject, self.current_predicate, bnode))
+            self.emit_statement((self.current_subject, self.current_predicate, bnode))
 
         if self.current_group_graph and bnode not in self.current_subjects_in_group_graph:
-            self.sink.add((self.current_group_graph, self.group_contains, bnode))
+            self.emit_statement((self.current_group_graph, self.group_contains, bnode))
             self.current_subjects_in_group_graph.add(bnode)
 
         with self.subject_context(bnode):
@@ -310,7 +302,7 @@ class GrafflASTInterpreter(Interpreter):
         if self.route_to_list:
             self.current_list_items_stack[-1].append(head)
         elif self.current_subject and self.current_predicate:
-            self.sink.add((self.current_subject, self.current_predicate, head))
+            self.emit_statement((self.current_subject, self.current_predicate, head))
 
         self.current_list_items_stack.append([])
         self.visit_children(tree)
@@ -326,7 +318,7 @@ class GrafflASTInterpreter(Interpreter):
             while current_node and current_node != RDF.nil:
                 # Prüfen und Hinzufügen zum Group Graph
                 if current_node not in self.current_subjects_in_group_graph:
-                    self.sink.add((self.current_group_graph, self.group_contains, current_node))
+                    self.emit_statement((self.current_group_graph, self.group_contains, current_node))
                     self.current_subjects_in_group_graph.add(current_node)
 
                 # Zum nächsten Blank Node in der rdf:rest Kette springen
@@ -338,12 +330,17 @@ class GrafflASTInterpreter(Interpreter):
 
     def group_graph(self, tree):
         word = Word(self._get_raw_value(tree.children[0]))
-        group_uri = self._make_uri(word)
-        self.sink.add((group_uri, RDF.type, self.group_type))
+        group_uri = self._create_URI(word)
+        self.emit_statement((group_uri, RDF.type, self.group_type))
         self._remember_subject(group_uri, word)
 
         with self.group_graph_context(group_uri):
             self.visit_children(tree)
+            
+    def emit_statement(self, triple):
+        logging.debug(f"==> {triple[0]} {triple[1]} {triple[2]}")
+        self.sink.add(triple)
+
 
 
 class GrafflParser(Parser):
@@ -364,7 +361,6 @@ class GrafflParser(Parser):
 def parse(input, graph=None):
     base_path = input.parent if isinstance(input, Path) else None
     data = input.read_text(encoding='utf-8') if isinstance(input, Path) else input
-
 
     g = graph if graph is not None else Graph()
     if not data: return g
