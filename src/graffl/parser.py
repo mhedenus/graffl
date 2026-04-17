@@ -10,7 +10,7 @@ from urllib.parse import quote
 from lark import Lark, Token
 from lark.exceptions import UnexpectedInput, LarkError
 from lark.visitors import Interpreter
-from rdflib import URIRef, Literal, Graph, RDFS, RDF, BNode, Namespace
+from rdflib import URIRef, Literal, RDFS, RDF, BNode, Dataset
 from rdflib.collection import Collection
 from rdflib.parser import Parser
 
@@ -85,8 +85,9 @@ class PredicateType(Enum):
 
 
 class GrafflASTInterpreter(Interpreter):
-    def __init__(self, sink, base_path=None):
-        self.sink = sink
+    def __init__(self, target_graph, base_path=None):
+        self.target_graph = target_graph
+        self.current_graph = target_graph
         self.base_path = base_path
         self.subjects_seen = set()
 
@@ -210,15 +211,19 @@ class GrafflASTInterpreter(Interpreter):
                 apply_profile(t1.value, self)
 
             # Globaler Prefix (@ prefix <URI>)
-            if t0.value.lower() == "prefix":
+            elif t0.value.lower() == "prefix":
                 self.current_uri_prefix = t1.value
+
+            elif t0.value.lower() == "context" and t1.type == WordType.URI:
+                if self.target_graph.store.context_aware:
+                    self.current_graph = Dataset(store=self.target_graph.store).graph(URIRef(t1.value))
 
             elif len(tree.children) == 3:
                 t2 = Word(self._get_raw_value(tree.children[2]))
 
                 # Namespace / Alias Zuweisung (@ foaf = <URI>)
-                if t1.value == "=" and t2.type == WordType.URI :
-                    self.dictionary[t0.value] = t2.value # do not bind it in the sink
+                if t1.value == "=" and t2.type == WordType.URI:
+                    self.dictionary[t0.value] = t2.value  # do not bind it in the target_graph
 
                 # uri property
                 elif t1.value == ":" and t2.value == "URI":
@@ -309,7 +314,7 @@ class GrafflASTInterpreter(Interpreter):
         items = self.current_list_items_stack.pop()
 
         # rdflib die Collection (und die internen Blank Nodes) bauen lassen
-        Collection(self.sink, head, items)
+        Collection(self.current_graph, head, items)
 
         # BUGFIX: Alle generierten Blank Nodes der Liste dem Group Graph hinzufügen
         if self.current_group_graph:
@@ -322,7 +327,7 @@ class GrafflASTInterpreter(Interpreter):
                     self.current_subjects_in_group_graph.add(current_node)
 
                 # Zum nächsten Blank Node in der rdf:rest Kette springen
-                current_node = self.sink.value(current_node, RDF.rest)
+                current_node = self.current_graph.value(current_node, RDF.rest)
 
     def list_item(self, tree):
         with self.list_item_context():
@@ -336,11 +341,10 @@ class GrafflASTInterpreter(Interpreter):
 
         with self.group_graph_context(group_uri):
             self.visit_children(tree)
-            
+
     def emit_statement(self, triple):
         logging.debug(f"==> {triple[0]} {triple[1]} {triple[2]}")
-        self.sink.add(triple)
-
+        self.current_graph.add(triple)
 
 
 class GrafflParser(Parser):
@@ -350,19 +354,19 @@ class GrafflParser(Parser):
             grammar_text = f.read()
         self.lark_parser = Lark(grammar_text, start='start', parser='lalr')
 
-    def parse(self, source, sink, **kwargs):
+    def parse(self, source, target_graph, **kwargs):
         base_path = kwargs.get('base_path', None)
 
         content = source.getCharacterStream().read()
         tree = self.lark_parser.parse(content)
-        GrafflASTInterpreter(sink, base_path).visit(tree)
+        GrafflASTInterpreter(target_graph, base_path).visit(tree)
 
 
 def parse(input, graph=None):
     base_path = input.parent if isinstance(input, Path) else None
     data = input.read_text(encoding='utf-8') if isinstance(input, Path) else input
 
-    g = graph if graph is not None else Graph()
+    g = graph if graph is not None else Dataset()
     if not data: return g
     try:
         g.parse(data=data, format="graffl", base_path=base_path)

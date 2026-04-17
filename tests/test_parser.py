@@ -9,19 +9,19 @@ logging.basicConfig(
 
 
 def test_empty():
-    print(toTurtle(""))
+    print(toRDF(""))
 
 
 def test_simple():
-    print(toTurtle("A"))
+    print(toRDF("A"))
 
 
 def test_simple_noderef_1():
-    print(toTurtle("(A)"))
+    print(toRDF("(A)"))
 
 
 def test_simple_noderef_2():
-    print(toTurtle("""
+    print(toRDF("""
         (person001)
             label "Alice"
         
@@ -34,43 +34,43 @@ def test_simple_noderef_2():
 
 
 def test_simple_string():
-    print(toTurtle("\"A\""))
+    print(toRDF("\"A\""))
 
 
 def test_simple_mls_string():
-    print(toTurtle("\"\"\"A\"\"\""))
+    print(toRDF("\"\"\"A\"\"\""))
 
 
 def test_hello_world():
-    print(toTurtle("World says Hello!"))
+    print(toRDF("World says Hello!"))
 
 
 def test_1():
-    print(toTurtle("Alice likes -> Bob"))
+    print(toRDF("Alice likes -> Bob"))
 
 
 def test_uri_value():
-    print(toTurtle("Alice homepage <https://example.org/~alice>"))
+    print(toRDF("Alice homepage <https://example.org/~alice>"))
 
 
 def test_number_value():
-    print(toTurtle("x  y -3e+10"))
+    print(toRDF("x  y -3e+10"))
 
 
 def test_only_uris():
-    print(toTurtle("<http://example.org/subject> <http://example.org/predicate> <http://example.org/object>"))
+    print(toRDF("<http://example.org/subject> <http://example.org/predicate> <http://example.org/object>"))
 
 
 def test_noderefs():
-    print(toTurtle("(1) implies -> (2)"))
+    print(toRDF("(1) implies -> (2)"))
 
 
 def test_noderef_as_value():
-    print(toTurtle("(1) implies (2)"))
+    print(toRDF("(1) implies (2)"))
 
 
 def test_prefix():
-    print(toTurtle("""
+    print(toRDF("""
     @prefix http://example.org/ns#
     
     "Mr. Bean"
@@ -80,7 +80,7 @@ def test_prefix():
 
 
 def test_model():
-    print(toTurtle("""
+    print(toRDF("""
 @prefix http://example.org/pizza#
 @use RDFSchema
 @use OWL
@@ -103,7 +103,7 @@ SalamiPizza : Class
 
 
 def test_model_2():
-    print(toTurtle("""
+    print(toRDF("""
 @ prefix http://example.org/ns#
 @ use RDFSchema
 @ use OWL
@@ -125,7 +125,7 @@ MyClass : Class
 
 
 def test_group_graph():
-    print(toTurtle("""
+    print(toRDF("""
         
     ---- Team-1 ----
         Alice
@@ -152,14 +152,14 @@ def test_group_graph():
 
 
 def test_blank_nodes():
-    print(toTurtle("""
+    print(toRDF("""
         Alice fullName [ firstName "Alice"
                          secondName "Jane" ]
     """))
 
 
 def test_container():
-    print(toTurtle("""
+    print(toRDF("""
         "action items"
             * §1.1
             * §2.7
@@ -174,25 +174,26 @@ def test_container():
 
 
 def test_list_1():
-    print(toTurtle("""
+    print(toRDF("""
+    @context <http://example.org/mygraph>
       Rainbow colors -> *( Red Green Blue )
     """))
 
 
 def test_list_2():
-    print(toTurtle("""
+    print(toRDF("""
       Rainbow colors *( Red Green Blue )
     """))
 
 
 def test_value():
-    print(toTurtle("""
+    print(toRDF("""
         §1 = " bla bla bla "
     """))
 
 
 def test_seq():
-    print(toTurtle("""
+    print(toRDF("""
         (Tasks)
           1. Beginn
           2. "do something"
@@ -202,7 +203,7 @@ def test_seq():
 
 
 def test_define_dict():
-    print(toTurtle("""
+    print(toRDF("""
         @ Alice = <urn:example.org:persons:12345>
         @ Bob   = <urn:example.org:persons:67890>
         @ likes = <http://purl.org/spar/cito/likes>
@@ -212,7 +213,7 @@ def test_define_dict():
 
 
 def test_languages():
-    print(toTurtle("""
+    print(toRDF("""
         (a)     label @de Adelheid
                 label Alice
                 label @es Alicia
@@ -221,7 +222,7 @@ def test_languages():
 
 
 def test_datatypes():
-    print(toTurtle(""" 
+    print(toRDF(""" 
     Event
       name @en "Launch Party"
       startDate @dateTime "2023-11-01T12:00:00"
@@ -231,7 +232,7 @@ def test_datatypes():
 
 
 def test_uri_predicate():
-    print(toTurtle("""
+    print(toRDF("""
         @ state : URI
         
         Alice state ACTIVE
@@ -239,7 +240,7 @@ def test_uri_predicate():
 
 
 def test_namespaces():
-    print(toTurtle("""
+    print(toRDF("""
 @ ex = <http://example.org/persons#>
 
 Alice : foaf:Person
@@ -248,20 +249,19 @@ Alice : foaf:Person
         """))
 
 
-def toTurtle(src):
-    g = graffl.parser.parse(src)
-    ttl = g.serialize(format="turtle")
-    return ttl
-
-
 def test_list_group():
-    print(toTurtle("""
-
+    print(toRDF("""
+@context <urn:test>
 ---- Group ----
 
 List items -> *( item1 item2 item3 item4 )
 
 ---------------
 
-
      """))
+
+
+def toRDF(src):
+    g = graffl.parser.parse(src)
+    ttl = g.serialize(format="trig")
+    return ttl

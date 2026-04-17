@@ -305,6 +305,15 @@ Rainbow colors -> *( Red Green Blue )
 
 will regard the colors as nodes.
 
+== Contexts (Named Graphs)
+
+You can specify the target context (named graph) with the directive `context` followed by a URI
+
+-----
+@ context <http://example.org/mygraph>
+-----
+
+
 == Profiles
 
 *graffl* can be customized with __profiles__.

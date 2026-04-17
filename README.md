@@ -5,6 +5,8 @@
 (pronounced g-raffl, but also derived from the Bavarian 
 word "Graffl" meaning "stuff" or "junk")
 
+# Summary
+
 __graffl__ is a (still) experimental __RDF__ scratch pad file format.
 Its purpose is to write something down that is immediately
 understood as graph data. No annoying syntax like dots or commas is required.
@@ -32,3 +34,12 @@ See the `src/graffl/graffl.lark` file for the EBNF grammar.
 The parser is implemented as an extension for __rdflib__: https://github.com/rdflib/rdflib
 
 The file format is used by __rdf2graphml__: https://github.com/mhedenus/rdf2graphml
+
+# CLI
+
+The CLI command `graffl` converts one or more `*.graffl` files to __TriG__:
+
+    graffl [-h] [-V] [-o OUTPUT] [-v] [-d INPUT_DIR] [input_files ...]
+
+The produced RDF is merged in one dataset. You can separate the graphs using the `@context` directive.
+If no output is specified, the result is printed to standard output.
