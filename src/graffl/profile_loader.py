@@ -68,7 +68,7 @@ def apply_profile(profile_name: str, interpreter) -> None:
                 if "group_type" in gg_settings:
                     interpreter.group_type = URIRef(gg_settings["group_type"])
 
-            logger.info(f"Successfully applied profile '{profile_name}' to interpreter instance.")
+            logger.debug(f"Successfully applied profile '{profile_name}' to interpreter instance.")
 
     except Exception as e:
         logger.error(f"Failed to load or apply profile '{target_path}': {e}")
