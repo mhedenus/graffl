@@ -15,7 +15,7 @@ A __block__ starts with a subject followed by predicate-object pairs.
 The block is terminated with empty line:
 
 ----
-@ prefix <http://example.org/ns#>
+@prefix <http://example.org/ns#>
 
   Alice email alice@example.org
     likes -> Bob
@@ -33,7 +33,7 @@ An object produces a literal unless:
 
 == Nodes
 
-[cols="1,3", options="header"]
+[cols="1,3",options="header"]
 |====
 | Syntax | Meaning
 | `Alice`                  | A node with label `Alice`
@@ -43,10 +43,13 @@ An object produces a literal unless:
 | `\<https://example.org>` | A node with specified URI, no label
 |====
 
+The syntax with three quotation marks (`""" ... """`) is for multiline string and may contain line breaks.
+
 If the label is a word without whitespace like "Alice", then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 
 If a node is defined with label (e.g. `Alice`, `"Mr. Bean"`, `"""Mr. Bean"""`)
 *graffl* will produce a `rdfs:label` when it encounters the node for the first time as statement subject.
+If the node is a _node reference__  (e.g. `(Alice)`) or URI (e.g. `<mailto:alice@example.org>`) then no `rdfs:label` is produced.
 
 For example the graph:
 
@@ -74,7 +77,7 @@ The directive `@prefix` defines the base URI prefix.
 It is called "prefix" because the resulting URI is a simple concatenation of the prefix with the encoded node label:
 
 -----
-@prefix <http://example.org/ns#>
+@ prefix <http://example.org/ns#>
 
 "Mr. Bean"
 -----
@@ -100,7 +103,7 @@ x y z
 The set of __aliases__ is called __dictionary__.
 Here is a list of predefined aliases or default dictionary (see also the code of `src/graffl/config.py`):
 
-[cols="1,3", options="header"]
+[cols="1,3",options="header"]
 |===
 |Alias             | URI
 | `:`, `type`      | rdf:type
@@ -114,11 +117,14 @@ Here is a list of predefined aliases or default dictionary (see also the code of
 | `seeAlso`        | rdfs:seeAlso
 |===
 
-== Namespaces
+== Namespaces and QNames
 
-*graffl* supports __namespaces__.
-You can define a __namespace prefix__ using the assignment directive with an `=` sign followed by a URI
-at the beginning of your file:
+*graffl* supports __namespaces__ and __qnames__ (qualified names).
+to make your script more concise and readable.
+A __qname__ consists of a prefix and a local name, separated by a colon (e.g. `foaf:Person`).
+When parsing, *graffl* automatically expands this into a full URI.
+
+You can define a __namespace prefix__ using the assignment directive with an `=` sign followed by a URI at the beginning of your file:
 
 ----
 @ ex = <http://example.org/persons#>
@@ -136,7 +142,7 @@ Alice : foaf:Person
 
 The following prefixes are predefined (see also the code of `src/graffl/config.py`):
 
-[cols="1,3", options="header"]
+[cols="1,3",options="header"]
 |===
 | Prefix | Namespace URI
 | `dc`      | `++<http://purl.org/dc/elements/1.1/>++`
@@ -242,6 +248,8 @@ ns1:Event rdfs:label "Event" ;
 Note that every literal without a datatype is a plain literal.
 The syntax makes it easy for defining the datatype ex post.
 
+_Note_: If the datatype is not known it will be interpreted as language tag (see below).
+
 == Languages
 
 An object may be tagged with an ISO 639 language code.
@@ -313,8 +321,9 @@ You can specify the target context (named graph) with the directive `context` fo
 @ context <http://example.org/mygraph>
 -----
 
-
 == Profiles
+
+=== Dictionary and URI Properties
 
 *graffl* can be customized with __profiles__.
 A __profile__ is a YAML configuration file.
@@ -329,6 +338,7 @@ Alice likes Bob
 
 and the __profile__ `test1.yaml`:
 
+[source,yaml]
 ----
 dictionary:
   Alice: "mailto:alice@example.org"
@@ -349,15 +359,33 @@ then the produced RDF as *Turtle* is:
     ns1:likes <http://example.org/~bob> .
 ----
 
+=== Vocabularies
+
+While the `dictionary` is useful for mapping individual aliases, the `vocabularies` key allows you to map entire
+lists of terms to a base URI in a very concise way.
+A vocabulary is defined as a mapping where the key is the base URI
+and the value is a list of terms:
+
+[source,yaml]
+----
+vocabularies:
+  "http://example.org/vocab#":
+    - DataProduct
+    - domain
+----
+
+__Note__: If the Base URI does not already end with a slash `/` or a hash `++#++`,
+then `++#++` is automatically appended as separator.
+
 == Modeling with RDFSchema, OWL and SHACL
 
 There are predfined __profiles__ for *RDFSchema*,  *OWL* and *SHACL*.
 This makes writing an ontology nice and simple:
 
 ----
-@use RDFSchema
-@use OWL
-@prefix <http://example.org/pizza#>
+@ use RDFSchema
+@ use OWL
+@ prefix <http://example.org/pizza#>
 
 SalamiPizza : Class
     subClassOf [ : Class
@@ -376,8 +404,8 @@ SalamiPizza : Class
     ]
 ----
 
-If you use *SHACL* as well, there are naming conflicts, especially for `hasValue`. In that case
-you can disambiguate with namespaces:
+If you use *SHACL* as well, there are naming conflicts, especially for `hasValue`.
+In that case you can disambiguate with namespaces:
 
 ----
 @ prefix <http://example.org/ns#>

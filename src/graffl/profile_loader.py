@@ -55,6 +55,16 @@ def apply_profile(profile_name: str, interpreter) -> None:
             if "dictionary" in profile_data:
                 interpreter.dictionary.update(profile_data["dictionary"])
 
+            if "vocabularies" in profile_data:
+                for base_uri, terms in profile_data["vocabularies"].items():
+                    # Hilfslogik: Setzt automatisch ein '#', falls die Base-URI
+                    # nicht bereits mit '/' oder '#' endet (Standard-RDF-Praxis).
+                    separator = "" if base_uri.endswith(("/", "#")) else "#"
+
+                    if terms:
+                        for term in terms:
+                            interpreter.dictionary[term] = f"{base_uri}{separator}{term}"
+
             # Apply URI properties
             if "uri_properties" in profile_data:
                 for uri in profile_data["uri_properties"]:
