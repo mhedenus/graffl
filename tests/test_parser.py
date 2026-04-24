@@ -396,10 +396,10 @@ def test_comments():
     graffl_src = """
         @prefix <http://example.org/ns#>
 
-        # This is a global comment at the top of the file
+        // This is a global comment at the top of the file
         Alice likes -> Bob
 
-            # This is an indented comment inside a block
+            // This is an indented comment inside a block
             Bob status "active"
     """
 

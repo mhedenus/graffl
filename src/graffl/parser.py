@@ -362,10 +362,10 @@ class GrafflParser(Parser):
 
         # 2. PRE-PROCESSOR:
         # Adding comments to the syntax is very cumbersome,
-        # so we remove all comment lines starting with '#' (ignoring leading whitespace) here.
+        # so we remove all comment lines starting with '//' (ignoring leading whitespace) here.
         # We split by lines, filter, and rejoin. This safely preserves the block structure.
         lines = raw_content.splitlines()
-        filtered_lines = [line for line in lines if not line.lstrip().startswith('#')]
+        filtered_lines = [line for line in lines if not line.lstrip().startswith('//')]
         processed_content = "\n".join(filtered_lines)
 
         # 3. Pass the cleaned content to Lark

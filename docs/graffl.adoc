@@ -75,7 +75,7 @@ then no additional statement is produced.
 == Comments
 
 *graffl* supports __line comments__.
-A line with `#` as the first non-whitespace character is ignored.
+A line with double slash `//` as the first non-whitespace characters is ignored.
 
 _Implementation Note_:
 Because the introduction of comments would make the grammar very complicated
