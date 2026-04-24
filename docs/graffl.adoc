@@ -21,6 +21,7 @@ The block is terminated with empty line:
     likes -> Bob
 
   Bob email bob@example.org
+    # my comment: Bob really likes Alice
     likes -> Alice
 ----
 
@@ -70,6 +71,15 @@ ns1:Alice rdfs:label "Alice" ;
 If a node is defined without label as __node reference__ (e.g. `(my node)`) or URI `\<https://example.org>`
 or it only appears as statement object
 then no additional statement is produced.
+
+== Comments
+
+*graffl* supports __line comments__.
+A line with `#` as the first non-whitespace character is ignored.
+
+_Implementation Note_:
+Because the introduction of comments would make the grammar very complicated
+the line comments are removed in a preprocess.
 
 == Base URI Prefix
 

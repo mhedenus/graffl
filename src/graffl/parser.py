@@ -357,8 +357,19 @@ class GrafflParser(Parser):
     def parse(self, source, target_graph, **kwargs):
         base_path = kwargs.get('base_path', None)
 
-        content = source.getCharacterStream().read()
-        tree = self.lark_parser.parse(content)
+        # 1. read data
+        raw_content = source.getCharacterStream().read()
+
+        # 2. PRE-PROCESSOR:
+        # Adding comments to the syntax is very cumbersome,
+        # so we remove all comment lines starting with '#' (ignoring leading whitespace) here.
+        # We split by lines, filter, and rejoin. This safely preserves the block structure.
+        lines = raw_content.splitlines()
+        filtered_lines = [line for line in lines if not line.lstrip().startswith('#')]
+        processed_content = "\n".join(filtered_lines)
+
+        # 3. Pass the cleaned content to Lark
+        tree = self.lark_parser.parse(processed_content)
         GrafflASTInterpreter(target_graph, base_path).visit(tree)
 
 

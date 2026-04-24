@@ -390,3 +390,28 @@ def test_bnode_in_group_graphs():
             _:BN1 a ns2:Role ; rdf:value "Lead" .
     """
     assert_graffl_matches(graffl_src, expected_rdf)
+
+
+def test_comments():
+    graffl_src = """
+        @prefix <http://example.org/ns#>
+
+        # This is a global comment at the top of the file
+        Alice likes -> Bob
+
+            # This is an indented comment inside a block
+            Bob status "active"
+    """
+
+    expected_rdf = """
+        @prefix ns: <http://example.org/ns#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+        ns:Alice rdfs:label "Alice" ;
+                 ns:likes ns:Bob .
+
+        ns:Bob rdfs:label "Bob" ;
+               ns:status "active" .
+    """
+
+    assert_graffl_matches(graffl_src, expected_rdf)
