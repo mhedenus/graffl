@@ -22,6 +22,7 @@ class GrafflConfig:
             "dcterms": str(DCTERMS),
             "skos": str(SKOS),
             "schema": "https://schema.org/",
+            "rdf2graphml": "https://www.hedenus.de/rdf2graphml/",
 
             # --- RDF Core ---
             ":": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
