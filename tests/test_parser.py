@@ -229,6 +229,77 @@ def test_lists():
     assert_graffl_matches(graffl_src, expected_rdf)
 
 
+def test_lists2():
+    graffl_src = """
+        @prefix <http://example.org/ns#>
+
+        table elements *( 
+            row_1 *( cell_11 cell_12 )
+            row_2 *( cell_21 cell_22 )
+            )
+    """
+
+    expected_rdf = """
+        @prefix ns1: <http://example.org/ns#> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        
+        ns1:table rdfs:label "table" ;
+            ns1:elements (
+                "row_1" ("cell_11" "cell_12")
+                "row_2" ("cell_21" "cell_22")
+            ).
+    """
+    assert_graffl_matches(graffl_src, expected_rdf)
+
+
+def test_nested_lists():
+    # Tests proper RDF Collections (Linked Lists)
+    # rdflib natively understands the ( ... ) syntax in Turtle for lists
+    graffl_src = """
+        @ use RDFSchema
+        @ use OWL
+        @ prefix <http://example.org/pizza#>
+        
+        SalamiPizza
+            subClassOf [
+                intersectionOf *(
+                    Pizza
+                    [
+                        onProperty hasTopping
+                        someValuesFrom Salami
+                    ]
+                    [
+                        onProperty hasTopping
+                        someValuesFrom Mozzarella
+                    ]
+                )
+            ]
+    """
+
+    expected_rdf = """
+        @prefix owl: <http://www.w3.org/2002/07/owl#> .
+        @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+        <http://example.org/pizza#SalamiPizza> rdfs:label "SalamiPizza" ;
+            rdfs:subClassOf [
+                owl:intersectionOf (
+                    <http://example.org/pizza#Pizza>
+                    [
+                        owl:onProperty <http://example.org/pizza#hasTopping> ;
+                        owl:someValuesFrom <http://example.org/pizza#Salami>
+                    ]
+                    [
+                        owl:onProperty <http://example.org/pizza#hasTopping> ;
+                        owl:someValuesFrom <http://example.org/pizza#Mozzarella> 
+                    ]
+                    )
+            ].
+    """
+    assert_graffl_matches(graffl_src, expected_rdf)
+
+
 def test_named_graphs():
     # Tests context mapping to named graphs in the Dataset
     graffl_src = """
@@ -399,19 +470,25 @@ def test_comments():
         // This is a global comment at the top of the file
         Alice likes -> Bob
 
-            // This is an indented comment inside a block
-            Bob status "active"
+       Bob ; \"\"\"Here is Bob's
+//this is line omitted because it is a line comment 
+\//this line is kept
+\\"funny\\" story.
+\"\"\"
     """
 
     expected_rdf = """
-        @prefix ns: <http://example.org/ns#> .
-        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+    @prefix ns1: <http://example.org/ns#> .
+    @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+    ns1:Alice rdfs:label "Alice" ;
+        ns1:likes ns1:Bob .
 
-        ns:Alice rdfs:label "Alice" ;
-                 ns:likes ns:Bob .
-
-        ns:Bob rdfs:label "Bob" ;
-               ns:status "active" .
+    ns1:Bob rdfs:label "Bob" ;
+        rdfs:comment \"\"\"Here is Bob's
+//this line is kept
+\\"funny\\" story.
+\"\"\"
+    .
     """
 
     assert_graffl_matches(graffl_src, expected_rdf)

@@ -1,9 +1,37 @@
 = graffl
 :toc:
 
-== Basic Structure
+== Introduction
 
-*graffl* produces *RDF* (Resource Description Framework) statements consisting of subject, predicate and objects.
+*graffl* is a simple *RDF* (Resource Description Framework) file format.
+It allows you to quickly and easily enter graph data manually.
+It is intended as data source and not as a target serialization format.
+
+The two main design goals are
+
+1. It should be possible to write down data immediately, just as on a notepad
++
+and therefore
++
+2. unnecessary syntax elements like dots or commas should be avoided.
+
+*RDF* is based on URI (Uniform Resource Identifier).
+However, URI are a very technical concept, and in most cases
+the URIs of the things you want to say something about
+are not defined until a later stage. This makes manually
+creating *RDF* files impractical.
+Therefore, *graffl* initially allows you to define the
+graph structure and specify the URIs later.
+
+Nevertheless, *graffl* is a rigorous *RDF* file format.
+The parser produces statements consisting of subject, predicate and objects.
+Contexts aka. named graphs are also supported.
+
+
+Another important feature is support for nested graphs.
+This is made possible by the concept of _group graphs_
+
+== Basic Structure
 
 The basic structure:
 
@@ -21,7 +49,7 @@ The block is terminated with empty line:
     likes -> Bob
 
   Bob email bob@example.org
-    # my comment: Bob really likes Alice
+    // my comment: Bob really likes Alice
     likes -> Alice
 ----
 
@@ -45,6 +73,7 @@ An object produces a literal unless:
 |====
 
 The syntax with three quotation marks (`""" ... """`) is for multiline string and may contain line breaks.
+Quotation marks `"`, slashes `/` and backslashes `\` can be escaped with backslashes`.
 
 If the label is a word without whitespace like "Alice", then `Alice`, `(Alice)`, `"Alice"` or `"""Alice"""` all refer to the same node.
 
@@ -77,9 +106,12 @@ then no additional statement is produced.
 *graffl* supports __line comments__.
 A line with double slash `//` as the first non-whitespace characters is ignored.
 
-_Implementation Note_:
+*Note:* If you are within a multiline string and want to start line with `//` you can use escaping `\//`.
+
+*Implementation Note:*
 Because the introduction of comments would make the grammar very complicated
-the line comments are removed in a preprocess.
+the line comments are removed in a pre-process.
+
 
 == Base URI Prefix
 
@@ -256,10 +288,10 @@ ns1:Event rdfs:label "Event" ;
     ns1:startDate "2023-11-01T12:00:00"^^xsd:dateTime .
 ----
 
-Note that every literal without a datatype is a plain literal.
+Every literal without a datatype (or language) is a plain literal.
 The syntax makes it easy for defining the datatype ex post.
 
-_Note_: If the datatype is not known it will be interpreted as language tag (see below).
+*Note:* If the datatype is not known it will be interpreted as language tag (see below).
 
 == Languages
 
@@ -385,7 +417,7 @@ vocabularies:
     - domain
 ----
 
-__Note__: If the Base URI does not already end with a slash `/` or a hash `++#++`,
+*Note*: If the Base URI does not already end with a slash `/` or a hash `++#++`,
 then `++#++` is automatically appended as separator.
 
 == Modeling with RDFSchema, OWL and SHACL
@@ -444,7 +476,7 @@ __Group graphs__ provide a simple and visual way to cluster statements into logi
 A __group graph__ begins with a header containing the group's name enclosed by `----` (at least four minus characters) and ends with a closing line of `----` (at least four minus characters).
 Any node that appears as a subject within these boundaries is automatically linked as being contained by the group.
 
-**Important Note on Nesting:**
+*Note:*
 The `graffl` syntax does *not* allow you to physically nest one group graph block inside another.
 Trying to open a new group graph before closing the current one will result in a syntax error.
 

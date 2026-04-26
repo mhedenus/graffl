@@ -27,7 +27,7 @@ class WordType(Enum):
     NODEREF = 2
     ML_STRING = 3
     STRING = 4
-    QNAME = 5  # NEU: Eigener Typ für QNames
+    QNAME = 5
 
 
 class Word:
@@ -43,7 +43,7 @@ class Word:
             self.value = self._strip(raw_value)
         elif self._is_ml_string(raw_value):
             self.type = WordType.ML_STRING
-            self.value = self._strip_mls_quotes(raw_value)
+            self.value = self._process_ml_string(raw_value)
         elif self._is_string(raw_value):
             self.type = WordType.STRING
             self.value = self._strip(raw_value)
@@ -72,8 +72,16 @@ class Word:
     def _strip(self, val):
         return val[1:-1]
 
-    def _strip_mls_quotes(self, val):
-        return val[3:-3]
+    def _process_ml_string(self, val):
+        content = val[3:-3]
+        # save \\
+        content = content.replace(r'\\', '\x00')
+        # replace escaped
+        content = content.replace(r'\"', '"')
+        content = content.replace(r'\/', '/')
+        # replace \\ with \
+        content = content.replace('\x00', '\\')
+        return content
 
     def __str__(self):
         return f"{self.type}: {self.value}"
