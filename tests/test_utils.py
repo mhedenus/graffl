@@ -30,10 +30,6 @@ def assert_graffl_matches(graffl_src: str, expected_rdf: str, rdf_format: str = 
         expected_g = expected_dataset.get_context(ctx_id)
 
         if not isomorphic(actual_g, expected_g):
-            _, in_actual_only, in_expected_only = graph_diff(actual_g, expected_g)
-
-            # Error handling: Precise diff for the failing graph
             graph_name = "Default Graph" if ctx_id == expected_dataset.default_graph.identifier else f"Named Graph <{ctx_id}>"
-
             error_msg = f"Asserted and expected graphs {graph_name} are not isomorphic!\n\n"
             pytest.fail(error_msg)

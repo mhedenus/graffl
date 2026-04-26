@@ -225,6 +225,8 @@ class GrafflASTInterpreter(Interpreter):
             elif t0.value.lower() == "context" and t1.type == WordType.URI:
                 if self.target_graph.store.context_aware:
                     self.current_graph = Dataset(store=self.target_graph.store).graph(URIRef(t1.value))
+                else:
+                    logger.warning("RDF data sink is not context aware, context is ignored")
 
             elif len(tree.children) == 3:
                 t2 = Word(self._get_raw_value(tree.children[2]))
@@ -381,7 +383,7 @@ class GrafflParser(Parser):
         GrafflASTInterpreter(target_graph, base_path).visit(tree)
 
 
-def parse(input, graph=None):
+def parse(input: str|Path, graph=None):
     base_path = input.parent if isinstance(input, Path) else None
     data = input.read_text(encoding='utf-8') if isinstance(input, Path) else input
 
