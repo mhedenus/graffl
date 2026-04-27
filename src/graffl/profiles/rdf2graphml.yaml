@@ -1,0 +1,18 @@
+vocabularies:
+  "https://www.hedenus.de/rdf2graphml/":
+    - GroupClass
+    - GroupContainsProperty
+    - IconLocatorProperty
+    - IgnoredClass
+    - IgnoredProperty
+    - NodeProperty
+    - color
+    - icon
+    - iconHeight
+    - lineType
+    - lineWidth
+    - preferredLanguage
+    - priority
+    - shape
+    - targetArrow
+    - typeAsEdge

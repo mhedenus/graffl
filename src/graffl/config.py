@@ -39,14 +39,7 @@ class GrafflConfig:
             "label": "http://www.w3.org/2000/01/rdf-schema#label",
             "comment": "http://www.w3.org/2000/01/rdf-schema#comment",
             ";": "http://www.w3.org/2000/01/rdf-schema#comment",
-            "seeAlso": "http://www.w3.org/2000/01/rdf-schema#seeAlso",
-
-            # --- rdf2graphml ---
-            "color": "https://www.hedenus.de/rdf2graphml/color",
-            "shape": "https://www.hedenus.de/rdf2graphml/shape",
-            "icon": "https://www.hedenus.de/rdf2graphml/icon",
-            "lineType": "https://www.hedenus.de/rdf2graphml/lineType",
-            "targetArrow": "https://www.hedenus.de/rdf2graphml/targetArrow"
+            "seeAlso": "http://www.w3.org/2000/01/rdf-schema#seeAlso"
         }
 
         self.uri_properties = {
