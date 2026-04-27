@@ -1,8 +1,3 @@
 @ use test1
 @ context <urn:my-graph-2#>
 Bob likes Alice
-    ; """This
-    // omitted
-    \// escaped comment
-    \\// write this to escape and escaped comment
-    """
