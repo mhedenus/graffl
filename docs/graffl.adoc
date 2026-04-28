@@ -4,7 +4,7 @@
 == Introduction
 
 =====
-NOTE: See also the project homepage on https://github.com/mhedenus/graffl[Github].
+NOTE: See also the project repository on https://github.com/mhedenus/graffl[Github].
 =====
 
 *graffl* is a simple *RDF* (Resource Description Framework) file format.

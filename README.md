@@ -24,16 +24,13 @@ written as Turtle:
     ns1:Alice rdfs:label "Alice" ;
         ns1:likes ns1:Bob .
 
+ - It allows nested graphs!
+ - It supports modeling with **RDFSchema**, **OWL** and **SHACL**
+ - The parser is implemented as an extension for [__rdflib__](https://github.com/rdflib/rdflib)
+ - The file format is used by [__rdf2graphml__](https://github.com/mhedenus/rdf2graphml)
 
-It also supports OWL modeling and nested graphs!
 
-See the documentation `docs/graffl.adoc`.
-
-See the `src/graffl/graffl.lark` file for the EBNF grammar.
-
-The parser is implemented as an extension for __rdflib__: https://github.com/rdflib/rdflib
-
-The file format is used by __rdf2graphml__: https://github.com/mhedenus/rdf2graphml
+_See also the documentation on **[Github Pages](https://mhedenus.github.io/graffl/)**!_
 
 # CLI
 
