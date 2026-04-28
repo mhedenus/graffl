@@ -3,9 +3,14 @@
 
 == Introduction
 
+=====
+NOTE: See also the project homepage on https://github.com/mhedenus/graffl[Github].
+=====
+
 *graffl* is a simple *RDF* (Resource Description Framework) file format.
 It allows you to quickly and easily enter graph data manually.
 It is intended as data source and not as a target serialization format.
+Think of it as _Markdown for RDF_.
 
 The two main design goals are
 
