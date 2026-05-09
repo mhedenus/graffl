@@ -5,6 +5,7 @@ vocabularies:
     - IconLocatorProperty
     - IgnoredClass
     - IgnoredProperty
+    - Link
     - NodeProperty
     - color
     - icon
