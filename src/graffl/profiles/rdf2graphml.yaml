@@ -1,5 +1,6 @@
 vocabularies:
   "https://www.hedenus.de/rdf2graphml/":
+    - Group
     - GroupClass
     - GroupContainsProperty
     - IconLocatorProperty
