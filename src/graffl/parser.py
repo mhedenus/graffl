@@ -28,6 +28,7 @@ class WordType(Enum):
     ML_STRING = 3
     STRING = 4
     QNAME = 5
+    SELF = 6
 
 
 class Word:
@@ -35,7 +36,10 @@ class Word:
         self.prefix = None
         self.local_name = None
 
-        if self._is_uri(raw_value):
+        if raw_value == ".":
+            self.type = WordType.SELF
+            self.value = raw_value
+        elif self._is_uri(raw_value):
             self.type = WordType.URI
             self.value = self._strip(raw_value)
         elif self._is_noderef(raw_value):
@@ -182,6 +186,9 @@ class GrafflASTInterpreter(Interpreter):
     def _create_URI(self, word):
         val = word.value
 
+        if self.current_group_graph and word.type == WordType.SELF:
+            return self.current_group_graph
+
         if val in self.dictionary:
             return URIRef(self.dictionary[val])
 
@@ -249,7 +256,8 @@ class GrafflASTInterpreter(Interpreter):
         self._remember_subject(subject, word)
         self.current_subject_stack = [subject]
         self.current_subject = subject
-        if self.current_group_graph and subject not in self.current_subjects_in_group_graph:
+        if (self.current_group_graph and subject not in self.current_subjects_in_group_graph
+                and self.current_group_graph != subject): # avoid self-contains
             self.emit_statement((self.current_group_graph, self.group_contains, subject))
             self.current_subjects_in_group_graph.add(subject)
 
@@ -383,7 +391,7 @@ class GrafflParser(Parser):
         GrafflASTInterpreter(target_graph, base_path).visit(tree)
 
 
-def parse(input: str|Path, graph=None):
+def parse(input: str | Path, graph=None):
     base_path = input.parent if isinstance(input, Path) else None
     data = input.read_text(encoding='utf-8') if isinstance(input, Path) else input
 

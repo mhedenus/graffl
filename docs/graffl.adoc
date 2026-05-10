@@ -553,6 +553,23 @@ ns2:Chris rdfs:label "Chris" .
 ns2:David rdfs:label "David" .
 ----
 
+=== Referencing the Group from Within
+
+Inside a group you can use `.` as _self_-reference:
+
+----
+
+---- Team-1 ----
+
+. ; "The main delivery team"
+
+(Alice) isLeadOf -> .
+
+----------------
+
+----
+
+
 === Hierarchical Modeling
 
 One important application of this feature is for __breaking down__ things into different levels of details.

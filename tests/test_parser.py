@@ -492,3 +492,33 @@ def test_comments():
     """
 
     assert_graffl_matches(graffl_src, expected_rdf)
+
+
+def test_group_graph_properties():
+    graffl_src = """
+        @prefix <http://example.org/ns#>
+        
+        ---- Group1 ----
+            .   color #FF0000
+                hasLead -> (Alice)
+            
+            (Alice) isLeadOf -> .
+        ----------------
+    """
+
+    expected_rdf = """
+        @prefix ns1: <http://example.org/ns#> .
+        @prefix ns2: <https://www.hedenus.de/graffl/> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+        
+        ns1:Group1 a ns2:Group ;
+             rdfs:label "Group1" ;
+             ns1:color "#FF0000" ;
+             ns2:contains ns1:Alice ;
+             ns1:hasLead ns1:Alice .
+             
+        ns1:Alice ns1:isLeadOf ns1:Group1 .
+        
+        """
+
+    assert_graffl_matches(graffl_src, expected_rdf)

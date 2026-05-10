@@ -33,13 +33,13 @@ _following_statement_lines: _predicate_object _SINGLE_NL*
 
 _predicate_object: _predicate (object | blank_node | rdf_list)
 
-subject: WORD
+subject: WORD | SELF
 
 _predicate: predicate_property | predicate_relation
 predicate_property: WORD TAG?
 predicate_relation: WORD "->"
 
-object: WORD
+object: WORD | SELF
 
 rdf_list: "*(" _SINGLE_NL* list_item* ")"
 list_item: (object | blank_node | rdf_list) _SINGLE_NL*
@@ -57,6 +57,8 @@ WORD: /[a-zäöüßA-ZÄÖÜ0-9_+#!?%§$&\/:*~=\;][a-zäöüßA-ZÄÖÜ0-9_.+#!?
         | STRING
         | ML_STRING
         | SIGNED_NUMBER
+
+SELF: /\./
 
 URI: /<[^>]+>/
 
