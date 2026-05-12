@@ -74,6 +74,7 @@ An object produces a literal unless:
 | `"Mr. Bean"`             | A node with label `Mr. Bean`
 | `"""Mr. Bean"""`         | A node with label `Mr. Bean`
 | `(my node)`              | A __node reference__, no label
+| `()`                     | A _anonyoums node_, no label
 | `\<https://example.org>` | A node with specified URI, no label
 |====
 
@@ -105,6 +106,18 @@ ns1:Alice rdfs:label "Alice" ;
 If a node is defined without label as __node reference__ (e.g. `(my node)`) or URI `\<https://example.org>`
 or it only appears as statement object
 then no additional statement is produced.
+
+== Incoming and Outgoing Relations
+
+*graffl* supports _outgoing relations_ (`++->++`) and _incoming relations_ (`++<-++`).
+_Incoming relations_ are very convenient if you are focusing
+on a certain subject. If you want to say that `Alice`likes `Bob`
+and `Bob` is in love with `Alice` you can write:
+
+----
+Alice likes -> Bob
+      <- loves Bob
+----
 
 == Comments
 

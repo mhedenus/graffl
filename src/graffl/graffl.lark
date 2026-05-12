@@ -35,9 +35,10 @@ _predicate_object: _predicate (object | blank_node | rdf_list)
 
 subject: WORD | SELF
 
-_predicate: predicate_property | predicate_relation
+_predicate: predicate_property | predicate_relation_outgoing | predicate_relation_incoming
 predicate_property: WORD TAG?
-predicate_relation: WORD "->"
+predicate_relation_outgoing: WORD "->"
+predicate_relation_incoming: "<-" WORD
 
 object: WORD | SELF
 
@@ -62,7 +63,7 @@ SELF: /\./
 
 URI: /<[^>]+>/
 
-NODEREF:  /\([^\)]+\)/
+NODEREF:  /\([^\)]*\)/
 
 _MINUS_SEP: /-{4,}/
 

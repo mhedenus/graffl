@@ -78,6 +78,24 @@ def test_basic_relations_and_properties():
     assert_graffl_matches(graffl_src, expected_rdf)
 
 
+def test_incoming_relation():
+    graffl_src = """
+        @prefix <http://example.org/ns#>
+
+        (Alice) <- likes (Bob)
+                <- likes [  ]
+    """
+
+    expected_rdf = """
+        @prefix ns: <http://example.org/ns#> .
+        @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+        ns:Bob ns:likes ns:Alice .
+        [] ns:likes ns:Alice .
+        
+    """
+    assert_graffl_matches(graffl_src, expected_rdf)
+
 def test_namespaces_and_qnames():
     # Tests predefined namespaces and dynamic QName resolution
     graffl_src = """

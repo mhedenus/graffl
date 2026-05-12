@@ -29,6 +29,7 @@ class WordType(Enum):
     STRING = 4
     QNAME = 5
     SELF = 6
+    ANONYMOUS = 7
 
 
 class Word:
@@ -43,8 +44,13 @@ class Word:
             self.type = WordType.URI
             self.value = self._strip(raw_value)
         elif self._is_noderef(raw_value):
-            self.type = WordType.NODEREF
-            self.value = self._strip(raw_value)
+            v = self._strip(raw_value).strip()
+            if v:
+                self.type = WordType.NODEREF
+                self.value = v
+            else:
+                self.type = WordType.ANONYMOUS
+                self.value = None
         elif self._is_ml_string(raw_value):
             self.type = WordType.ML_STRING
             self.value = self._process_ml_string(raw_value)
@@ -93,7 +99,8 @@ class Word:
 
 class PredicateType(Enum):
     PROPERTY = 1
-    RELATION = 2
+    RELATION_OUTGOING = 2
+    RELATION_INCOMING = 3
 
 
 class GrafflASTInterpreter(Interpreter):
@@ -199,6 +206,9 @@ class GrafflASTInterpreter(Interpreter):
             if word.prefix in self.dictionary:
                 return URIRef(f"{self.dictionary[word.prefix]}{word.local_name}")
 
+        if word.type == WordType.ANONYMOUS:
+            return URIRef(f"{self.current_uri_prefix}{uuid.uuid1()}")
+
         return URIRef(f"{self.current_uri_prefix}{quote(val, safe='/:=#')}")
 
     def _create_URI_predicate(self, word):
@@ -208,7 +218,7 @@ class GrafflASTInterpreter(Interpreter):
 
     def _remember_subject(self, subject, word):
         if subject not in self.subjects_seen:
-            if word.type not in (WordType.URI, WordType.NODEREF):
+            if word.type not in (WordType.URI, WordType.NODEREF, WordType.ANONYMOUS):
                 self.emit_statement((subject, RDFS.label, Literal(word.value)))
             self.subjects_seen.add(subject)
 
@@ -257,7 +267,7 @@ class GrafflASTInterpreter(Interpreter):
         self.current_subject_stack = [subject]
         self.current_subject = subject
         if (self.current_group_graph and subject not in self.current_subjects_in_group_graph
-                and self.current_group_graph != subject): # avoid self-contains
+                and self.current_group_graph != subject):  # avoid self-contains
             self.emit_statement((self.current_group_graph, self.group_contains, subject))
             self.current_subjects_in_group_graph.add(subject)
 
@@ -278,40 +288,54 @@ class GrafflASTInterpreter(Interpreter):
             else:
                 self.current_language = tag_value
 
-    def predicate_relation(self, tree):
+    def predicate_relation_outgoing(self, tree):
         word = Word(self._get_raw_value(tree.children[0]))
         self.current_predicate = self._create_URI_predicate(word)
-        self.current_predicate_type = PredicateType.RELATION
+        self.current_predicate_type = PredicateType.RELATION_OUTGOING
+
+    def predicate_relation_incoming(self, tree):
+        word = Word(self._get_raw_value(tree.children[0]))
+        self.current_predicate = self._create_URI_predicate(word)
+        self.current_predicate_type = PredicateType.RELATION_INCOMING
 
     def object(self, tree):
+        triple_subject = self.current_subject
+        triple_predicate = self.current_predicate
+        triple_object = None
+
         word = Word(self._get_raw_value(tree))
 
         if self.current_predicate_type == PredicateType.PROPERTY:
-            # Sauberer Check auf QName mit vorhandenem Prefix
             is_valid_qname = (word.type == WordType.QNAME and word.prefix in self.dictionary)
-
             if is_valid_qname or word.type == WordType.URI or (self.current_predicate in self.uri_properties):
-                obj = self._create_URI(word)
+                triple_object = self._create_URI(word)
             else:
-                obj = Literal(word.value, lang=self.current_language, datatype=self.current_datatype)
-        else:
-            obj = self._create_URI(word)
+                triple_object = Literal(word.value, lang=self.current_language, datatype=self.current_datatype)
+        elif self.current_predicate_type == PredicateType.RELATION_OUTGOING:
+            triple_object = self._create_URI(word)
+        elif self.current_predicate_type == PredicateType.RELATION_INCOMING:
+            triple_object = triple_subject
+            triple_subject = self._create_URI(word)
 
         # Reset nach Verarbeitung
         self.current_language = None
         self.current_datatype = None
 
-        if self.route_to_list:
-            self.current_list_items_stack[-1].append(obj)
-        elif self.current_subject and self.current_predicate:
-            self.emit_statement((self.current_subject, self.current_predicate, obj))
+        if triple_object:
+            if self.route_to_list:
+                self.current_list_items_stack[-1].append(triple_object)
+            elif triple_subject and triple_predicate:
+                self.emit_statement((triple_subject, triple_predicate, triple_object))
 
     def blank_node(self, tree):
         bnode = BNode()
         if self.route_to_list:
             self.current_list_items_stack[-1].append(bnode)
         elif self.current_subject and self.current_predicate:
-            self.emit_statement((self.current_subject, self.current_predicate, bnode))
+            if self.current_predicate_type in (PredicateType.PROPERTY, PredicateType.RELATION_OUTGOING):
+                self.emit_statement((self.current_subject, self.current_predicate, bnode))
+            elif self.current_predicate_type == PredicateType.RELATION_INCOMING:
+                self.emit_statement((bnode, self.current_predicate, self.current_subject))
 
         if self.current_group_graph and bnode not in self.current_subjects_in_group_graph:
             self.emit_statement((self.current_group_graph, self.group_contains, bnode))
